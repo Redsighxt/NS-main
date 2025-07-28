@@ -396,11 +396,15 @@ function createViewportManager(container: HTMLElement, config: VirtualPageReplay
   viewport.style.transform = "none";
   viewport.style.transformOrigin = "0 0";
 
-  // Optional debug tint to see the blue lines issue
+  // Optional debug tint with reduced blue line visibility
   if (config.showDebugTints) {
-    viewport.style.backgroundColor = "rgba(0, 100, 255, 0.1)"; // Blue debug
-    viewport.style.border = "2px solid rgba(0, 100, 255, 0.5)";
-    console.log("🔍 Debug tint enabled for viewport - blue border visible");
+    viewport.style.backgroundColor = "rgba(255, 255, 0, 0.05)"; // Very light yellow debug
+    viewport.style.border = "1px dashed rgba(255, 165, 0, 0.3)"; // Light orange dashed border
+    console.log("🔍 Debug tint enabled for viewport - reduced visibility");
+  } else {
+    // Ensure no debug artifacts when disabled
+    viewport.style.backgroundColor = "transparent";
+    viewport.style.border = "none";
   }
 
   container.appendChild(viewport);
