@@ -369,16 +369,13 @@ export function AdvancedReplayWindow() {
     setIsPlaying(false);
     setProgress(0);
     setReplayError(null);
-    if (canvasRef.current) {
-      // For preview mode, we still use the canvas-based approach
-      // Clear all possible overlays
-      const canvasElement = canvasRef.current as HTMLCanvasElement;
-      clearReplayWindowOverlay(canvasElement);
+    if (canvasRef.current && canvasRef.current.parentElement) {
+      // Clear the SVG animations from the container
+      const container = canvasRef.current.parentElement;
+      container.innerHTML = '';
 
-      // Also try to clear as container for the new replay systems
-      const containerElement = canvasRef.current as HTMLElement;
-      clearOriginBoxAnimationOverlay(containerElement);
-      clearChronologicalAnimationOverlay(containerElement);
+      // Re-add the canvas element
+      container.appendChild(canvasRef.current);
     }
   };
 
