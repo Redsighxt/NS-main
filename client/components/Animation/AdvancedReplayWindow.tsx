@@ -767,7 +767,7 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas);
         console.log("Extended config:", extendedConfig);
 
-        // Use new advanced virtual page replay system with progressive fills
+        // FIXED: Use the working virtual page replay system
         const layerConfig: VirtualPageReplayConfig = {
           width,
           height,
@@ -776,7 +776,7 @@ export function AdvancedReplayWindow() {
           transitionType: replaySettings.transitionType,
           transitionDuration: replaySettings.transitionDuration,
           showPageIndicators: true,
-          showDebugTints: replaySettings.showDebugTints,
+          showDebugTints: false, // Disable debug tints in popup by default
         };
 
         const layerSettings: ExtendedReplaySettings = {
@@ -798,6 +798,9 @@ export function AdvancedReplayWindow() {
             easing: replaySettings.libraryObjects.easing,
           },
         };
+
+        console.log("Starting layer replay with config:", layerConfig);
+        console.log("Elements to replay:", elementsToReplay);
 
         await replayWithVirtualPages(
           elementsToReplay,
