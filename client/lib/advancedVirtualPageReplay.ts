@@ -134,52 +134,63 @@ export async function replayWithVirtualPages(
 }
 
 /**
- * Calculate bounds of all elements in world coordinates (like infinite canvas)
+ * Calculate bounds using Origin Box dimensions (1920x1080) as reference
+ * This ensures consistent viewport regardless of element positions
  */
 function calculateElementBounds(elements: DrawingElement[]) {
-  if (elements.length === 0) {
-    return { minX: -960, minY: -540, maxX: 960, maxY: 540, width: 1920, height: 1080 };
-  }
+  // FIXED: Always use Origin Box dimensions (1920x1080) as the bounding box
+  // Origin Box is centered at (0,0), so bounds are:
+  // - Width: 1920 (from -960 to +960)
+  // - Height: 1080 (from -540 to +540)
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-  for (const element of elements) {
-    if (element.points && element.points.length > 0) {
-      // For path elements, check all points
-      for (const point of element.points) {
-        minX = Math.min(minX, point.x);
-        minY = Math.min(minY, point.y);
-        maxX = Math.max(maxX, point.x);
-        maxY = Math.max(maxY, point.y);
-      }
-    } else {
-      // For other elements, use x, y, width, height
-      const elementMaxX = element.x + (element.width || 0);
-      const elementMaxY = element.y + (element.height || 0);
-      minX = Math.min(minX, element.x);
-      minY = Math.min(minY, element.y);
-      maxX = Math.max(maxX, elementMaxX);
-      maxY = Math.max(maxY, elementMaxY);
-    }
-  }
-
-  // Add reasonable padding
-  const padding = 200;
-  const finalBounds = {
-    minX: minX - padding,
-    minY: minY - padding,
-    maxX: maxX + padding,
-    maxY: maxY + padding,
-    width: (maxX - minX) + (padding * 2),
-    height: (maxY - minY) + (padding * 2),
+  const originBoxBounds = {
+    minX: -960,   // Half of 1920
+    minY: -540,   // Half of 1080
+    maxX: 960,    // Half of 1920
+    maxY: 540,    // Half of 1080
+    width: 1920,  // Full Origin Box width
+    height: 1080, // Full Origin Box height
   };
 
-  console.log(`🔍 Calculated element bounds:`, {
-    original: { minX, minY, maxX, maxY },
-    withPadding: finalBounds,
-  });
+  console.log(`📦 Using Origin Box bounds (1920x1080):`, originBoxBounds);
 
-  return finalBounds;
+  // Optional: Log actual element distribution within Origin Box for debugging
+  if (elements.length > 0) {
+    let actualMinX = Infinity, actualMinY = Infinity, actualMaxX = -Infinity, actualMaxY = -Infinity;
+
+    for (const element of elements) {
+      if (element.points && element.points.length > 0) {
+        for (const point of element.points) {
+          actualMinX = Math.min(actualMinX, point.x);
+          actualMinY = Math.min(actualMinY, point.y);
+          actualMaxX = Math.max(actualMaxX, point.x);
+          actualMaxY = Math.max(actualMaxY, point.y);
+        }
+      } else {
+        const elementMaxX = element.x + (element.width || 0);
+        const elementMaxY = element.y + (element.height || 0);
+        actualMinX = Math.min(actualMinX, element.x);
+        actualMinY = Math.min(actualMinY, element.y);
+        actualMaxX = Math.max(actualMaxX, elementMaxX);
+        actualMaxY = Math.max(actualMaxY, elementMaxY);
+      }
+    }
+
+    console.log(`🎨 Actual element bounds within Origin Box:`, {
+      elements: elements.length,
+      actualBounds: {
+        minX: actualMinX,
+        minY: actualMinY,
+        maxX: actualMaxX,
+        maxY: actualMaxY,
+        width: actualMaxX - actualMinX,
+        height: actualMaxY - actualMinY
+      },
+      originBoxBounds
+    });
+  }
+
+  return originBoxBounds;
 }
 
 /**
@@ -935,7 +946,7 @@ export function clearVirtualPageReplay(container: HTMLElement): void {
   const viewport = container.querySelector(".virtual-page-viewport");
   if (viewport) {
     viewport.remove();
-    console.log("🧹 Viewport cleared");
+    console.log("��� Viewport cleared");
   }
 
   // Clear any remaining transition elements
