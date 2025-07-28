@@ -34,15 +34,33 @@ interface ChronologicalEvent {
  */
 export async function replayChronologicalMode(
   elements: DrawingElement[],
-  canvas: HTMLCanvasElement,
+  element: HTMLElement | HTMLCanvasElement,
   config: ChronologicalReplayConfig,
   settings: AnimationSettings,
   onProgress?: (progress: number) => void,
+  showDebugTints: boolean = false,
 ): Promise<void> {
-  if (!canvas) {
-    const error = "No canvas provided for chronological replay";
+  if (!element) {
+    const error = "No element provided for chronological replay";
     console.error(error);
     throw new Error(error);
+  }
+
+  // Determine if we're working with a canvas or container
+  const isCanvas = element instanceof HTMLCanvasElement;
+  let container: HTMLElement;
+
+  if (isCanvas) {
+    // For canvas elements, use the parent container
+    container = element.parentElement as HTMLElement;
+    if (!container) {
+      const error = "Canvas element must have a parent container";
+      console.error(error);
+      throw new Error(error);
+    }
+  } else {
+    // Direct container element
+    container = element as HTMLElement;
   }
 
   if (!elements.length) {
@@ -56,23 +74,31 @@ export async function replayChronologicalMode(
     `Starting chronological timeline replay with ${elements.length} elements`,
   );
 
-  // Set canvas size
-  canvas.width = config.width;
-  canvas.height = config.height;
+  // Setup container based on element type
+  if (isCanvas) {
+    // For canvas mode, set up the canvas properly
+    const canvas = element as HTMLCanvasElement;
+    canvas.width = config.width;
+    canvas.height = config.height;
 
-  // Clear canvas
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    const error = "Failed to get canvas 2D context for chronological replay";
-    console.error(error);
-    throw new Error(error);
+    // Clear canvas
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = config.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  } else {
+    // For container mode, clear and set up the container
+    container.innerHTML = "";
+    container.style.width = `${config.width}px`;
+    container.style.height = `${config.height}px`;
+    container.style.backgroundColor = config.backgroundColor;
+    container.style.position = "relative";
+    container.style.overflow = "hidden";
   }
 
-  ctx.fillStyle = config.backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   // Create SVG overlay for animations
-  let svg = createChronologicalSVG(canvas);
+  let svg = createChronologicalSVG(container, showDebugTints);
 
   // Build chronological timeline
   const timeline = buildChronologicalTimeline(elements);
@@ -205,9 +231,12 @@ async function executeChronologicalTimeline(
 /**
  * Create SVG overlay for chronological animations
  */
-function createChronologicalSVG(canvas: HTMLCanvasElement): SVGSVGElement {
-  // Remove existing SVG
-  const existingSvg = canvas.parentElement?.querySelector(".chronological-svg");
+function createChronologicalSVG(
+  container: HTMLElement,
+  showDebugTints: boolean = false,
+): SVGSVGElement {
+  // Remove existing SVG from container
+  const existingSvg = container.querySelector(".chronological-svg");
   if (existingSvg) existingSvg.remove();
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -221,9 +250,8 @@ function createChronologicalSVG(canvas: HTMLCanvasElement): SVGSVGElement {
   svg.style.zIndex = "20";
   svg.style.overflow = "visible";
 
-  // Optional debug tint based on global setting
-  const showDebugTint = (window as any).setChronologicalDebugTint;
-  if (showDebugTint) {
+  // Optional debug tint based on settings
+  if (showDebugTints) {
     svg.style.backgroundColor = "rgba(0, 0, 255, 0.1)";
     console.log("Created chronological SVG overlay with debug tint");
   } else {
@@ -234,7 +262,7 @@ function createChronologicalSVG(canvas: HTMLCanvasElement): SVGSVGElement {
   svg.setAttribute("viewBox", `0 0 1920 1080`);
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-  canvas.parentElement?.appendChild(svg);
+  container.appendChild(svg);
   return svg;
 }
 
@@ -462,7 +490,8 @@ async function animateChronologicalElement(
   svg.appendChild(pathEl);
 
   // Store the original stroke style before animation
-  const originalStrokeDasharray = pathEl.getAttribute("stroke-dasharray") || "none";
+  const originalStrokeDasharray =
+    pathEl.getAttribute("stroke-dasharray") || "none";
 
   // Calculate animation duration - use element-specific duration if available (true speed mode)
   let elementDuration = settings.strokeDuration;
@@ -531,13 +560,20 @@ async function animateChronologicalElement(
  * Clear chronological animation overlay
  */
 export function clearChronologicalAnimationOverlay(
-  canvas: HTMLCanvasElement,
+  element: HTMLElement | HTMLCanvasElement,
 ): void {
-  if (!canvas || !canvas.parentElement) return;
+  if (!element) return;
 
-  const svg = canvas.parentElement.querySelector(
-    ".chronological-svg",
-  ) as SVGSVGElement;
+  let container: HTMLElement;
+  if (element instanceof HTMLCanvasElement) {
+    container = element.parentElement as HTMLElement;
+  } else {
+    container = element as HTMLElement;
+  }
+
+  if (!container) return;
+
+  const svg = container.querySelector(".chronological-svg") as SVGSVGElement;
   if (svg) {
     svg.remove();
   }

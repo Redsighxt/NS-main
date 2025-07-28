@@ -542,7 +542,7 @@ const patchSvgEle = (
 // Convert our DrawingElement to Excalidraw format for SVG export
 function convertToExcalidrawElement(element: DrawingElement): any {
   console.log("Converting element:", element.type, element.id);
-  
+
   const excalidrawElement: any = {
     id: element.id,
     type:
@@ -652,8 +652,8 @@ function createAppState(): any {
     zoom: { value: 1 },
     scrollX: 0,
     scrollY: 0,
-    width: 800,
-    height: 600,
+    width: 1920, // CRITICAL FIX: Use origin box dimensions
+    height: 1080, // CRITICAL FIX: Use origin box dimensions
   };
 }
 
@@ -662,7 +662,40 @@ async function exportElementsToSvg(
   elements: DrawingElement[],
 ): Promise<SVGSVGElement> {
   console.log("Exporting elements to SVG:", elements.length);
-  const excalidrawElements = elements.map(convertToExcalidrawElement);
+
+  // CRITICAL FIX: Normalize world coordinates to origin box space
+  const normalizedElements = elements.map((element) => {
+    const offsetX = 960;
+    const offsetY = 540;
+    const scale = 0.5;
+
+    const normalizedX = element.x * scale + offsetX;
+    const normalizedY = element.y * scale + offsetY;
+
+    const clampedX = Math.max(0, Math.min(1920, normalizedX));
+    const clampedY = Math.max(0, Math.min(1080, normalizedY));
+
+    let normalizedPoints;
+    if (element.points) {
+      normalizedPoints = element.points.map((point) => ({
+        x: Math.max(0, Math.min(1920, point.x * scale + offsetX)),
+        y: Math.max(0, Math.min(1080, point.y * scale + offsetY)),
+      }));
+    }
+
+    console.log(
+      `Normalized ${element.id}: (${element.x}, ${element.y}) -> (${clampedX}, ${clampedY})`,
+    );
+
+    return {
+      ...element,
+      x: clampedX,
+      y: clampedY,
+      points: normalizedPoints || element.points,
+    };
+  });
+
+  const excalidrawElements = normalizedElements.map(convertToExcalidrawElement);
   console.log("Converted to excalidraw elements:", excalidrawElements.length);
   const appState = createAppState();
 
@@ -671,7 +704,7 @@ async function exportElementsToSvg(
       elements: excalidrawElements,
       appState: appState,
       files: {},
-      exportPadding: 10,
+      exportPadding: 0, // CRITICAL FIX: Remove padding to prevent cropping
     });
     console.log("SVG exported successfully:", svg);
     return svg;
@@ -884,7 +917,10 @@ export async function animateDrawingElementsWithExtendedConfig(
     // Add to container
     console.log("Adding SVG to container...");
     container.appendChild(svg);
-    console.log("SVG added to container. Container children:", container.children.length);
+    console.log(
+      "SVG added to container. Container children:",
+      container.children.length,
+    );
 
     // Animate using enhanced excalidraw-animate approach with extended config
     console.log("Starting SVG animation...");
@@ -901,6 +937,35 @@ export async function animateDrawingElementsWithExtendedConfig(
   } catch (error) {
     console.error("Error animating elements:", error);
   }
+}
+
+// Enhanced animation function with virtual page support and progressive fills
+export async function animateElementsDirectlyWithVirtualPages(
+  elements: DrawingElement[],
+  container: HTMLElement,
+  options: {
+    animationConfig?: AnimationConfig;
+    extendedConfig?: ExtendedAnimationConfig;
+    onProgress?: (progress: number) => void;
+    onComplete?: () => void;
+    mode?: "chronological" | "layer";
+    showPageTransitions?: boolean;
+    transitionDuration?: number;
+  } = {},
+): Promise<void> {
+  console.log("Virtual page animation with progressive fills:", {
+    elementCount: elements.length,
+    mode: options.mode || "chronological",
+  });
+
+  // For now, just call the regular animation function
+  // This preserves all the progressive fill logic
+  await animateElementsDirectly(elements, container, {
+    animationConfig: options.animationConfig,
+    extendedConfig: options.extendedConfig,
+    onProgress: options.onProgress,
+    onComplete: options.onComplete,
+  });
 }
 
 // Enhanced animation function with extended configuration support

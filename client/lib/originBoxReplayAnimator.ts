@@ -32,15 +32,33 @@ interface PageGroup {
  */
 export async function replayOriginBoxMode(
   elements: DrawingElement[],
-  canvas: HTMLCanvasElement,
+  element: HTMLElement | HTMLCanvasElement,
   config: OriginBoxReplayConfig,
   settings: AnimationSettings,
   onProgress?: (progress: number) => void,
+  showDebugTints: boolean = false,
 ): Promise<void> {
-  if (!canvas) {
-    const error = "No canvas provided for origin box replay";
+  if (!element) {
+    const error = "No element provided for origin box replay";
     console.error(error);
     throw new Error(error);
+  }
+
+  // Determine if we're working with a canvas or container
+  const isCanvas = element instanceof HTMLCanvasElement;
+  let container: HTMLElement;
+
+  if (isCanvas) {
+    // For canvas elements, use the parent container
+    container = element.parentElement as HTMLElement;
+    if (!container) {
+      const error = "Canvas element must have a parent container";
+      console.error(error);
+      throw new Error(error);
+    }
+  } else {
+    // Direct container element
+    container = element as HTMLElement;
   }
 
   if (!elements.length) {
@@ -53,27 +71,37 @@ export async function replayOriginBoxMode(
   console.log(
     `Starting ${config.replayMode} replay with ${elements.length} elements`,
   );
-  console.log(`Canvas size: ${canvas.width}x${canvas.height}`);
+  console.log(`Element size: ${config.width}x${config.height}`);
   console.log(`Config:`, config);
 
   // Always use origin page dimensions for replay window
   const originPage = virtualPagesManager.getOriginPage();
-  canvas.width = originPage.width;
-  canvas.height = originPage.height;
 
-  // Clear canvas
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    const error = "Failed to get canvas 2D context for origin box replay";
-    console.error(error);
-    throw new Error(error);
+  // Setup container based on element type
+  if (isCanvas) {
+    // For canvas mode, set up the canvas properly
+    const canvas = element as HTMLCanvasElement;
+    canvas.width = config.width;
+    canvas.height = config.height;
+
+    // Clear canvas
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = config.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  } else {
+    // For container mode, clear and set up the container
+    container.innerHTML = "";
+    container.style.width = `${config.width}px`;
+    container.style.height = `${config.height}px`;
+    container.style.backgroundColor = config.backgroundColor;
+    container.style.position = "relative";
+    container.style.overflow = "hidden";
   }
 
-  ctx.fillStyle = config.backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   // Create SVG overlay for animations
-  let svg = createAnimationSVG(canvas, originPage);
+  let svg = createAnimationSVG(container, originPage, showDebugTints);
 
   // Group elements by page based on replay mode
   const pageGroups = groupElementsByMode(elements, config);
@@ -299,11 +327,12 @@ async function executePageTransitionMode(
  * Create animation SVG overlay
  */
 function createAnimationSVG(
-  canvas: HTMLCanvasElement,
+  container: HTMLElement,
   originPage: VirtualPage,
+  showDebugTints: boolean = false,
 ): SVGSVGElement {
-  // Remove existing SVG
-  const existingSvg = canvas.parentElement?.querySelector(".origin-box-svg");
+  // Remove existing SVG from container
+  const existingSvg = container.querySelector(".origin-box-svg");
   if (existingSvg) existingSvg.remove();
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -317,9 +346,8 @@ function createAnimationSVG(
   svg.style.zIndex = "20"; // Higher z-index to ensure visibility
   svg.style.overflow = "visible";
 
-  // Optional debug tint based on global setting
-  const showDebugTint = (window as any).setOriginBoxDebugTint;
-  if (showDebugTint) {
+  // Optional debug tint based on settings
+  if (showDebugTints) {
     svg.style.backgroundColor = "rgba(0, 255, 0, 0.1)";
     console.log("Created origin box SVG overlay with debug tint");
   } else {
@@ -330,7 +358,7 @@ function createAnimationSVG(
   svg.setAttribute("viewBox", `0 0 ${originPage.width} ${originPage.height}`);
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-  canvas.parentElement?.appendChild(svg);
+  container.appendChild(svg);
   return svg;
 }
 
@@ -595,7 +623,8 @@ async function animateElement(
   svg.appendChild(pathEl);
 
   // Store the original stroke style before animation
-  const originalStrokeDasharray = pathEl.getAttribute("stroke-dasharray") || "none";
+  const originalStrokeDasharray =
+    pathEl.getAttribute("stroke-dasharray") || "none";
 
   // Calculate animation duration - use element-specific duration if available (true speed mode)
   let elementDuration = settings.strokeDuration;
@@ -664,13 +693,20 @@ async function animateElement(
  * Clear origin box animation overlay
  */
 export function clearOriginBoxAnimationOverlay(
-  canvas: HTMLCanvasElement,
+  element: HTMLElement | HTMLCanvasElement,
 ): void {
-  if (!canvas || !canvas.parentElement) return;
+  if (!element) return;
 
-  const svg = canvas.parentElement.querySelector(
-    ".origin-box-svg",
-  ) as SVGSVGElement;
+  let container: HTMLElement;
+  if (element instanceof HTMLCanvasElement) {
+    container = element.parentElement as HTMLElement;
+  } else {
+    container = element as HTMLElement;
+  }
+
+  if (!container) return;
+
+  const svg = container.querySelector(".origin-box-svg") as SVGSVGElement;
   if (svg) {
     svg.remove();
   }
