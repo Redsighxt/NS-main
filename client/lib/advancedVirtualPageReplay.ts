@@ -191,7 +191,7 @@ function setupReplayContainer(
 }
 
 /**
- * Execute chronological replay
+ * Execute chronological replay - WITH DEBUGGING
  */
 async function executeChronologicalReplay(
   elements: DrawingElement[],
@@ -200,14 +200,29 @@ async function executeChronologicalReplay(
   settings: ExtendedReplaySettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
+  console.log("🔧 DEBUG: executeChronologicalReplay called");
   console.log("⏰ Starting chronological replay");
+  console.log("🔧 DEBUG: Container in executeChronologicalReplay:", {
+    tagName: container.tagName,
+    className: container.className,
+    rect: container.getBoundingClientRect(),
+    innerHTML: container.innerHTML.length
+  });
 
   // Build chronological timeline with page switches
   const timeline = buildChronologicalTimeline(elements);
   console.log(`📅 Timeline: ${timeline.length} events`);
+  console.log("🔧 DEBUG: Timeline events:", timeline.map(e => ({
+    type: e.type,
+    timestamp: e.timestamp,
+    elementId: e.element?.id,
+    elementType: e.element?.type
+  })));
 
   // Create viewport that fills the entire container
+  console.log("🔧 DEBUG: Creating viewport manager...");
   const viewport = createViewportManager(container, config);
+  console.log("🔧 DEBUG: Viewport manager created:", viewport);
 
   let processedEvents = 0;
   let currentPage: VirtualPage | null = null;
