@@ -34,15 +34,32 @@ interface ChronologicalEvent {
  */
 export async function replayChronologicalMode(
   elements: DrawingElement[],
-  container: HTMLElement,
+  element: HTMLElement | HTMLCanvasElement,
   config: ChronologicalReplayConfig,
   settings: AnimationSettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
-  if (!container) {
-    const error = "No container provided for chronological replay";
+  if (!element) {
+    const error = "No element provided for chronological replay";
     console.error(error);
     throw new Error(error);
+  }
+
+  // Determine if we're working with a canvas or container
+  const isCanvas = element instanceof HTMLCanvasElement;
+  let container: HTMLElement;
+
+  if (isCanvas) {
+    // For canvas elements, use the parent container
+    container = element.parentElement as HTMLElement;
+    if (!container) {
+      const error = "Canvas element must have a parent container";
+      console.error(error);
+      throw new Error(error);
+    }
+  } else {
+    // Direct container element
+    container = element as HTMLElement;
   }
 
   if (!elements.length) {
@@ -56,13 +73,28 @@ export async function replayChronologicalMode(
     `Starting chronological timeline replay with ${elements.length} elements`,
   );
 
-  // Clear container and set up for animation
-  container.innerHTML = "";
-  container.style.width = `${config.width}px`;
-  container.style.height = `${config.height}px`;
-  container.style.backgroundColor = config.backgroundColor;
-  container.style.position = "relative";
-  container.style.overflow = "hidden";
+  // Setup container based on element type
+  if (isCanvas) {
+    // For canvas mode, set up the canvas properly
+    const canvas = element as HTMLCanvasElement;
+    canvas.width = config.width;
+    canvas.height = config.height;
+
+    // Clear canvas
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = config.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  } else {
+    // For container mode, clear and set up the container
+    container.innerHTML = "";
+    container.style.width = `${config.width}px`;
+    container.style.height = `${config.height}px`;
+    container.style.backgroundColor = config.backgroundColor;
+    container.style.position = "relative";
+    container.style.overflow = "hidden";
+  }
 
   // Create SVG overlay for animations
   let svg = createChronologicalSVG(container);
@@ -199,7 +231,7 @@ async function executeChronologicalTimeline(
  * Create SVG overlay for chronological animations
  */
 function createChronologicalSVG(container: HTMLElement): SVGSVGElement {
-  // Remove existing SVG
+  // Remove existing SVG from container
   const existingSvg = container.querySelector(".chronological-svg");
   if (existingSvg) existingSvg.remove();
 
@@ -524,8 +556,17 @@ async function animateChronologicalElement(
  * Clear chronological animation overlay
  */
 export function clearChronologicalAnimationOverlay(
-  container: HTMLElement,
+  element: HTMLElement | HTMLCanvasElement,
 ): void {
+  if (!element) return;
+
+  let container: HTMLElement;
+  if (element instanceof HTMLCanvasElement) {
+    container = element.parentElement as HTMLElement;
+  } else {
+    container = element as HTMLElement;
+  }
+
   if (!container) return;
 
   const svg = container.querySelector(
