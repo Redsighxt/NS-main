@@ -119,50 +119,82 @@ async function executeChronologicalReplay(
   onProgress?: (progress: number) => void,
 ): Promise<void> {
   console.log("⏰ Starting chronological replay");
-  
+
   // Build chronological timeline with page switches
   const timeline = buildChronologicalTimeline(elements);
   console.log(`📅 Timeline: ${timeline.length} events`);
-  
+
+  // Log timeline for debugging
+  timeline.forEach((event, index) => {
+    if (event.type === "page-switch") {
+      console.log(`  ${index + 1}. Page switch to ${event.toPage?.id} at ${event.timestamp}`);
+    } else {
+      console.log(`  ${index + 1}. Element ${event.element?.id} (${event.element?.type}) at ${event.timestamp}`);
+    }
+  });
+
   // Create viewport manager for page transitions
   const viewport = createViewportManager(container, config);
-  
+
   let processedEvents = 0;
   let currentPage: VirtualPage | null = null;
-  
+  let elementCount = 0;
+  const totalElements = timeline.filter(e => e.type === "element").length;
+
   for (const event of timeline) {
     if (event.type === "page-switch") {
       console.log(`📄 Page switch: ${currentPage?.id || 'start'} → ${event.toPage?.id}`);
-      
+
       // Show page transition
       if (event.toPage) {
         await showPageTransition(viewport, currentPage, event.toPage, config);
+
+        // Update viewport to show new page
+        updateViewportForPage(viewport, event.toPage, config);
         currentPage = event.toPage;
+
+        // Show page indicator
+        if (config.showPageIndicators) {
+          const indicator = createPageIndicator(event.toPage);
+          viewport.appendChild(indicator);
+
+          // Remove indicator after a delay
+          setTimeout(() => {
+            if (indicator.parentNode) {
+              indicator.parentNode.removeChild(indicator);
+            }
+          }, 2000);
+        }
       }
-      
+
     } else if (event.type === "element" && event.element) {
       console.log(`🎨 Animating element ${event.element.id} of type ${event.element.type}`);
-      
-      // Get element page for viewport positioning
+
+      // Ensure viewport is positioned for this element's page
       const elementPage = virtualPagesManager.findElementPage(event.element);
-      
-      // Update viewport to show this page
-      updateViewportForPage(viewport, elementPage, config);
-      
+      if (!currentPage || currentPage.id !== elementPage.id) {
+        updateViewportForPage(viewport, elementPage, config);
+        currentPage = elementPage;
+      }
+
       // Animate the element with progressive fills using existing system
       await animateElementInViewport(event.element, viewport, settings);
-      
-      // Wait for element delay
-      const delay = getElementDelay(event.element, settings);
-      await new Promise(resolve => setTimeout(resolve, delay));
+
+      elementCount++;
+
+      // Wait for element delay (except for last element)
+      if (elementCount < totalElements) {
+        const delay = getElementDelay(event.element, settings);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-    
+
     processedEvents++;
     if (onProgress) {
       onProgress((processedEvents / timeline.length) * 100);
     }
   }
-  
+
   console.log("✅ Chronological replay completed");
 }
 
