@@ -1,7 +1,7 @@
-// Advanced Virtual Page Replay System - Viewport Compatible Version
+// Advanced Virtual Page Replay System - ViewTransform Compatible Version
 // Handles chronological and layer replay modes with proper page transitions
 // Uses existing directSvgAnimation.ts for progressive fill animations
-// FIXED: Compatible with infinite canvas ViewTransform coordinate system
+// FIXED: Fully compatible with infinite canvas ViewTransform coordinate system
 
 import type { DrawingElement } from "../contexts/DrawingContext";
 import type { AnimationSettings } from "../contexts/AnimationContext";
@@ -100,11 +100,11 @@ export async function replayWithVirtualPages(
     Array.from(pageDistribution.entries()),
   );
 
-  // CRITICAL FIX: Calculate element bounds for proper viewport setup
+  // CRITICAL FIX: Calculate actual element bounds in world coordinates
   const elementBounds = calculateElementBounds(elements);
-  console.log(`📏 Element bounds:`, elementBounds);
+  console.log(`📏 Element bounds (world coordinates):`, elementBounds);
 
-  // Clear and setup container with viewport-compatible dimensions
+  // Setup container with proper coordinate system handling
   setupReplayContainer(container, config, elementBounds);
 
   try {
@@ -134,11 +134,11 @@ export async function replayWithVirtualPages(
 }
 
 /**
- * Calculate bounds of all elements for proper viewport setup
+ * Calculate bounds of all elements in world coordinates (like infinite canvas)
  */
 function calculateElementBounds(elements: DrawingElement[]) {
   if (elements.length === 0) {
-    return { minX: 0, minY: 0, maxX: 1920, maxY: 1080 };
+    return { minX: -960, minY: -540, maxX: 960, maxY: 540, width: 1920, height: 1080 };
   }
 
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -163,23 +163,32 @@ function calculateElementBounds(elements: DrawingElement[]) {
     }
   }
 
-  // Add padding around content
-  const padding = 100;
-  return {
+  // Add reasonable padding
+  const padding = 200;
+  const finalBounds = {
     minX: minX - padding,
     minY: minY - padding,
     maxX: maxX + padding,
     maxY: maxY + padding,
+    width: (maxX - minX) + (padding * 2),
+    height: (maxY - minY) + (padding * 2),
   };
+
+  console.log(`🔍 Calculated element bounds:`, {
+    original: { minX, minY, maxX, maxY },
+    withPadding: finalBounds,
+  });
+
+  return finalBounds;
 }
 
 /**
- * Setup the replay container with viewport-compatible dimensions
+ * Setup the replay container with proper ViewTransform-like coordinate system
  */
 function setupReplayContainer(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
-  elementBounds: { minX: number; minY: number; maxX: number; maxY: number },
+  elementBounds: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number },
 ): void {
   if (!container) {
     throw new Error("Container element is required");
@@ -188,60 +197,57 @@ function setupReplayContainer(
   // Clear container
   container.innerHTML = "";
 
-  // CRITICAL FIX: Set container to show content without zoom issues
-  // Use the container's parent dimensions for proper scaling
+  // Get container dimensions from parent
   const parentRect = container.parentElement?.getBoundingClientRect();
   const containerWidth = parentRect?.width || config.width;
   const containerHeight = parentRect?.height || config.height;
 
-  // Calculate content dimensions
-  const contentWidth = elementBounds.maxX - elementBounds.minX;
-  const contentHeight = elementBounds.maxY - elementBounds.minY;
+  // CRITICAL FIX: Mimic infinite canvas ViewTransform logic
+  // Calculate scale to fit content in container (like infinite canvas does)
+  const scaleX = containerWidth / elementBounds.width;
+  const scaleY = containerHeight / elementBounds.height;
+  const scale = Math.min(scaleX, scaleY, 1); // Don't scale above 1:1
 
-  // Calculate scale to fit content in container
-  const scaleX = containerWidth / contentWidth;
-  const scaleY = containerHeight / contentHeight;
-  const scale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond 1:1
+  // Calculate center position for content (like infinite canvas centering)
+  const contentCenterX = (elementBounds.minX + elementBounds.maxX) / 2;
+  const contentCenterY = (elementBounds.minY + elementBounds.maxY) / 2;
+  
+  // Calculate translation to center content in container (ViewTransform logic)
+  const translateX = containerWidth / 2 - contentCenterX * scale;
+  const translateY = containerHeight / 2 - contentCenterY * scale;
 
-  // VIEWPORT-COMPATIBLE SETUP: Use CSS transform instead of changing dimensions
-  container.style.width = `${contentWidth}px`;
-  container.style.height = `${contentHeight}px`;
+  // Set container to occupy the full parent space
+  container.style.width = `${containerWidth}px`;
+  container.style.height = `${containerHeight}px`;
   container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
-  container.style.overflow = "visible";
+  container.style.overflow = "hidden"; // Clip content to container bounds
   
-  // CRITICAL: Apply transform to scale down content to fit container
-  container.style.transform = `scale(${scale})`;
-  container.style.transformOrigin = "top left";
-  
-  // Position to center content in the parent container
-  const offsetX = (containerWidth - contentWidth * scale) / 2;
-  const offsetY = (containerHeight - contentHeight * scale) / 2;
-  container.style.left = `${offsetX}px`;
-  container.style.top = `${offsetY}px`;
-
-  // Remove problematic styles
+  // Remove any problematic styles
   container.style.border = "none";
   container.style.outline = "none";
   container.style.boxShadow = "none";
+  container.style.transform = "none";
+  container.style.left = "0";
+  container.style.top = "0";
 
-  // Store transform info for viewport calculations
-  (container as any).__replayTransform = {
-    scale,
-    offsetX: -elementBounds.minX,
-    offsetY: -elementBounds.minY,
-    contentWidth,
-    contentHeight,
+  // Store ViewTransform-compatible info for viewport calculations
+  (container as any).__replayViewTransform = {
+    x: translateX,
+    y: translateY,
+    scale: scale,
+    containerWidth,
+    containerHeight,
+    elementBounds,
   };
 
   console.log(
-    `📦 Viewport-compatible container setup:`,
+    `📦 ViewTransform-compatible container setup:`,
     {
       containerSize: `${containerWidth}x${containerHeight}`,
-      contentSize: `${contentWidth}x${contentHeight}`,
-      scale,
       elementBounds,
-      transform: (container as any).__replayTransform,
+      viewTransform: (container as any).__replayViewTransform,
+      contentCenter: { x: contentCenterX, y: contentCenterY },
     }
   );
 }
@@ -497,29 +503,30 @@ function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
 }
 
 /**
- * Create viewport manager for handling page views - Viewport Compatible Version
+ * Create viewport manager that mimics infinite canvas ViewTransform
  */
 function createViewportManager(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
 ) {
-  // Get transform info from container setup
-  const transformInfo = (container as any).__replayTransform;
+  // Get ViewTransform info from container setup
+  const viewTransform = (container as any).__replayViewTransform;
   
-  // Create main viewport div that handles coordinate translation
+  // Create main viewport div that acts like the infinite canvas
   const viewport = document.createElement("div");
   viewport.className = "virtual-page-viewport";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
 
-  // CRITICAL FIX: Use full content dimensions with coordinate offset
-  viewport.style.width = `${transformInfo.contentWidth}px`;
-  viewport.style.height = `${transformInfo.contentHeight}px`;
+  // CRITICAL FIX: Apply ViewTransform-like transformation
+  // This mimics how the infinite canvas renders elements
+  viewport.style.width = `${viewTransform.containerWidth}px`;
+  viewport.style.height = `${viewTransform.containerHeight}px`;
   viewport.style.overflow = "visible";
 
-  // Apply coordinate system offset to align with drawing context
-  viewport.style.transform = `translate(${transformInfo.offsetX}px, ${transformInfo.offsetY}px)`;
+  // Apply the ViewTransform (scale + translation) like infinite canvas
+  viewport.style.transform = `translate(${viewTransform.x}px, ${viewTransform.y}px) scale(${viewTransform.scale})`;
   viewport.style.transformOrigin = "0 0";
 
   // Optional debug tint with reduced visibility
@@ -533,15 +540,15 @@ function createViewportManager(
   }
 
   container.appendChild(viewport);
-  console.log(`🎯 Viewport-compatible viewport created:`, {
-    dimensions: `${transformInfo.contentWidth}x${transformInfo.contentHeight}`,
-    offset: `${transformInfo.offsetX}, ${transformInfo.offsetY}`,
+  console.log(`🎯 ViewTransform-compatible viewport created:`, {
+    transform: `translate(${viewTransform.x}px, ${viewTransform.y}px) scale(${viewTransform.scale})`,
+    containerSize: `${viewTransform.containerWidth}x${viewTransform.containerHeight}`,
   });
   return viewport;
 }
 
 /**
- * Update viewport to show specific page content - Viewport Compatible Version
+ * Update viewport for page content - maintains ViewTransform compatibility
  */
 function updateViewportForPage(
   viewport: HTMLElement,
@@ -550,36 +557,37 @@ function updateViewportForPage(
 ): void {
   console.log(`🎯 Updating viewport for page ${page.id}`, page);
 
-  // CRITICAL FIX: Use smooth transitions without breaking coordinate system
-  let additionalTranslateX = 0;
-  let additionalTranslateY = 0;
+  // Get the base ViewTransform from container
+  const container = viewport.parentElement as HTMLElement;
+  const viewTransform = (container as any).__replayViewTransform;
+
+  // For page transitions, we can add subtle visual offsets
+  // but maintain the core ViewTransform to keep elements visible
+  let pageOffsetX = 0;
+  let pageOffsetY = 0;
 
   if (!page.isOrigin) {
-    // For non-origin pages, add small visual offset to indicate page change
-    // but don't break the coordinate system
-    additionalTranslateX = page.x * 0.1; // Subtle visual indicator
-    additionalTranslateY = page.y * 0.1;
+    // Add very small offsets for visual indication of page changes
+    // These should be minimal to not break the coordinate system
+    pageOffsetX = page.x * 0.02; // Very subtle offset
+    pageOffsetY = page.y * 0.02;
   }
 
-  // Get the base transform from container setup
-  const container = viewport.parentElement as HTMLElement;
-  const transformInfo = (container as any).__replayTransform;
-
-  // Apply smooth transition with coordinate system preservation
+  // Apply smooth transition while maintaining ViewTransform logic
   viewport.style.transition = "transform 0.3s ease-out";
-  viewport.style.transform = `translate(${transformInfo.offsetX + additionalTranslateX}px, ${transformInfo.offsetY + additionalTranslateY}px)`;
+  viewport.style.transform = `translate(${viewTransform.x + pageOffsetX}px, ${viewTransform.y + pageOffsetY}px) scale(${viewTransform.scale})`;
   viewport.style.transformOrigin = "0 0";
 
-  // Maintain consistent dimensions
-  viewport.style.width = `${transformInfo.contentWidth}px`;
-  viewport.style.height = `${transformInfo.contentHeight}px`;
+  // Maintain viewport dimensions
+  viewport.style.width = `${viewTransform.containerWidth}px`;
+  viewport.style.height = `${viewTransform.containerHeight}px`;
   viewport.style.overflow = "visible";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
 
   console.log(
-    `🎯 Viewport updated for page ${page.id} - additional offset: (${additionalTranslateX}, ${additionalTranslateY})`,
+    `🎯 Viewport updated for page ${page.id} - ViewTransform maintained with subtle offset: (${pageOffsetX}, ${pageOffsetY})`,
   );
 }
 
@@ -977,7 +985,7 @@ export function getVirtualPageSystemInfo(): object {
   const allPages = virtualPagesManager.getAllPages();
 
   return {
-    version: "1.2.0", // Updated version - viewport compatible
+    version: "1.3.0", // Updated version - ViewTransform compatible
     totalPages: stats.totalPages,
     pagesWithElements: stats.pagesWithElements,
     totalElements: stats.totalElements,
