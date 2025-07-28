@@ -38,6 +38,7 @@ export async function replayChronologicalMode(
   config: ChronologicalReplayConfig,
   settings: AnimationSettings,
   onProgress?: (progress: number) => void,
+  showDebugTints: boolean = false,
 ): Promise<void> {
   if (!element) {
     const error = "No element provided for chronological replay";
@@ -97,7 +98,7 @@ export async function replayChronologicalMode(
   }
 
   // Create SVG overlay for animations
-  let svg = createChronologicalSVG(container);
+  let svg = createChronologicalSVG(container, showDebugTints);
 
   // Build chronological timeline
   const timeline = buildChronologicalTimeline(elements);
@@ -230,7 +231,7 @@ async function executeChronologicalTimeline(
 /**
  * Create SVG overlay for chronological animations
  */
-function createChronologicalSVG(container: HTMLElement): SVGSVGElement {
+function createChronologicalSVG(container: HTMLElement, showDebugTints: boolean = false): SVGSVGElement {
   // Remove existing SVG from container
   const existingSvg = container.querySelector(".chronological-svg");
   if (existingSvg) existingSvg.remove();
@@ -246,9 +247,8 @@ function createChronologicalSVG(container: HTMLElement): SVGSVGElement {
   svg.style.zIndex = "20";
   svg.style.overflow = "visible";
 
-  // Optional debug tint based on global setting
-  const showDebugTint = (window as any).setChronologicalDebugTint;
-  if (showDebugTint) {
+  // Optional debug tint based on settings
+  if (showDebugTints) {
     svg.style.backgroundColor = "rgba(0, 0, 255, 0.1)";
     console.log("Created chronological SVG overlay with debug tint");
   } else {
