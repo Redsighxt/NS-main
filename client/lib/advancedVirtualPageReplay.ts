@@ -138,17 +138,29 @@ export async function replayWithVirtualPages(
 }
 
 /**
- * FIXED: Setup container to fill entire space with proper scaling
+ * FIXED: Setup container to fill entire space with proper scaling - WITH DEBUGGING
  */
 function setupReplayContainer(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
 ): void {
+  console.log("🔧 DEBUG: setupReplayContainer called");
+
   if (!container) {
+    console.error("🔧 DEBUG: No container element provided!");
     throw new Error("Container element is required");
   }
 
+  console.log("🔧 DEBUG: Container before setup:", {
+    width: container.style.width,
+    height: container.style.height,
+    position: container.style.position,
+    innerHTML: container.innerHTML.length,
+    rect: container.getBoundingClientRect()
+  });
+
   // Clear container
+  console.log("🔧 DEBUG: Clearing container innerHTML");
   container.innerHTML = "";
 
   // CRITICAL FIX: Make container fill its parent completely
@@ -157,14 +169,23 @@ function setupReplayContainer(
   container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
   container.style.overflow = "hidden";
-  
+
   // Remove any transforms or positioning that could cause issues
-  container.style.border = "none";
+  container.style.border = "5px solid blue"; // DEBUG: Make container visible
   container.style.outline = "none";
   container.style.boxShadow = "none";
   container.style.transform = "none";
   container.style.left = "0";
   container.style.top = "0";
+
+  console.log("🔧 DEBUG: Container after setup:", {
+    width: container.style.width,
+    height: container.style.height,
+    position: container.style.position,
+    backgroundColor: container.style.backgroundColor,
+    border: container.style.border,
+    rect: container.getBoundingClientRect()
+  });
 
   console.log(`📦 Container setup: fills parent container completely`);
 }
@@ -877,7 +898,7 @@ export function clearVirtualPageReplay(container: HTMLElement): void {
   const indicators = container.querySelectorAll(".page-indicator");
   if (indicators.length > 0) {
     indicators.forEach((i) => i.remove());
-    console.log(`��� ${indicators.length} indicators cleared`);
+    console.log(`🧹 ${indicators.length} indicators cleared`);
   }
 
   console.log("✅ Virtual page replay cleared completely");
