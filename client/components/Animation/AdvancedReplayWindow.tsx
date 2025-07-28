@@ -385,9 +385,15 @@ export function AdvancedReplayWindow() {
     setProgress(0);
     setReplayError(null);
     if (canvasRef.current) {
-      clearReplayWindowOverlay(canvasRef.current);
-      clearOriginBoxAnimationOverlay(canvasRef.current);
-      clearChronologicalAnimationOverlay(canvasRef.current);
+      // For preview mode, we still use the canvas-based approach
+      // Clear all possible overlays
+      const canvasElement = canvasRef.current as HTMLCanvasElement;
+      clearReplayWindowOverlay(canvasElement);
+
+      // Also try to clear as container for the new replay systems
+      const containerElement = canvasRef.current as HTMLElement;
+      clearOriginBoxAnimationOverlay(containerElement);
+      clearChronologicalAnimationOverlay(containerElement);
     }
   };
 
@@ -776,7 +782,8 @@ export function AdvancedReplayWindow() {
 
     (replayWindow as any).stopReplay = () => {
       if (replayCanvas) {
-        // Clear the container for the new animation system
+        // Clear the origin box animation overlay and container
+        clearOriginBoxAnimationOverlay(replayCanvas);
         replayCanvas.innerHTML = "";
         if (progressBar) {
           progressBar.style.width = "0%";
@@ -1204,7 +1211,8 @@ export function AdvancedReplayWindow() {
 
     (replayWindow2 as any).stopReplay2 = () => {
       if (replayCanvas2) {
-        // Clear the container for the new animation system
+        // Clear the chronological animation overlay and container
+        clearChronologicalAnimationOverlay(replayCanvas2);
         replayCanvas2.innerHTML = "";
         if (progressBar2) {
           progressBar2.style.width = "0%";
