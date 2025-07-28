@@ -369,23 +369,24 @@ function createViewportManager(container: HTMLElement, config: VirtualPageReplay
  * Update viewport to show specific page content with proper scaling
  */
 function updateViewportForPage(viewport: HTMLElement, page: VirtualPage, config: VirtualPageReplayConfig): void {
-  // Calculate viewport transformation to show the page content within our fixed viewport
+  // For virtual page replay, we show the page content within our fixed viewport
+  // The viewport acts as a "window" into the virtual page space
+
+  // Simple translation to show the page content
+  // We translate so that the page's top-left corner is at viewport's top-left
   const translateX = -page.x;
   const translateY = -page.y;
 
-  // Calculate scale factor if page content is larger than viewport
-  const scaleX = config.width / page.width;
-  const scaleY = config.height / page.height;
-  const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down if needed
-
-  // Apply transformation with scaling and centering
-  const centerOffsetX = (config.width - page.width * scale) / 2;
-  const centerOffsetY = (config.height - page.height * scale) / 2;
-
-  viewport.style.transform = `translate(${translateX + centerOffsetX}px, ${translateY + centerOffsetY}px) scale(${scale})`;
+  // Apply smooth transformation
+  viewport.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+  viewport.style.transform = `translate(${translateX}px, ${translateY}px)`;
   viewport.style.transformOrigin = '0 0';
 
-  console.log(`🎯 Viewport positioned for page ${page.id} at (${page.x}, ${page.y}) with scale ${scale}`);
+  // Ensure viewport shows within bounds
+  viewport.style.width = `${page.width}px`;
+  viewport.style.height = `${page.height}px`;
+
+  console.log(`🎯 Viewport positioned for page ${page.id} at (${page.x}, ${page.y})`);
 }
 
 /**
