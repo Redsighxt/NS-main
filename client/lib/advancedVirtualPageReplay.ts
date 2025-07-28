@@ -177,37 +177,69 @@ async function executeLayerReplay(
   onProgress?: (progress: number) => void,
 ): Promise<void> {
   console.log("📄 Starting layer replay");
-  
+
   // Group elements by virtual pages
   const pageGroups = buildLayerPageGroups(elements);
   console.log(`📚 Page groups: ${pageGroups.length} pages`);
-  
+
   // Create viewport manager for page transitions
   const viewport = createViewportManager(container, config);
-  
+
   let processedGroups = 0;
-  
+  let totalElementsProcessed = 0;
+  const totalElements = elements.length;
+
   for (const group of pageGroups) {
     console.log(`📖 Animating page ${group.page.id} with ${group.elements.length} elements`);
-    
+
     // Show page transition (except for first page)
     if (processedGroups > 0) {
       const previousGroup = pageGroups[processedGroups - 1];
       await showPageTransition(viewport, previousGroup.page, group.page, config);
     }
-    
+
     // Update viewport to show this page
     updateViewportForPage(viewport, group.page, config);
-    
+
+    // Show page indicator during animation
+    if (config.showPageIndicators) {
+      const indicator = createPageIndicator(group.page);
+      viewport.appendChild(indicator);
+
+      // Remove indicator after animation
+      setTimeout(() => {
+        if (indicator.parentNode) {
+          indicator.parentNode.removeChild(indicator);
+        }
+      }, 3000);
+    }
+
     // Animate all elements in this page using existing progressive fill system
-    await animatePageElements(group.elements, viewport, settings);
-    
+    await animatePageElements(group.elements, viewport, settings, (elementProgress) => {
+      // Calculate overall progress including completed groups
+      const elementsInPreviousGroups = totalElementsProcessed;
+      const currentGroupProgress = (elementProgress / 100) * group.elements.length;
+      const overallProgress = ((elementsInPreviousGroups + currentGroupProgress) / totalElements) * 100;
+
+      if (onProgress) {
+        onProgress(overallProgress);
+      }
+    });
+
+    totalElementsProcessed += group.elements.length;
     processedGroups++;
+
+    // Final progress update for this group
     if (onProgress) {
-      onProgress((processedGroups / pageGroups.length) * 100);
+      onProgress((totalElementsProcessed / totalElements) * 100);
+    }
+
+    // Wait a bit before next page (if not last page)
+    if (processedGroups < pageGroups.length) {
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
-  
+
   console.log("✅ Layer replay completed");
 }
 
