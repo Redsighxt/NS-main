@@ -129,7 +129,7 @@ function setupReplayContainer(container: HTMLElement, config: VirtualPageReplayC
   container.style.height = `${virtualCanvasHeight}px`;
   container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
-  container.style.overflow = "hidden";
+  container.style.overflow = "visible"; // CRITICAL: Allow content to be visible
 
   // Remove all borders and debug elements that could cause blue lines
   container.style.border = "none";
