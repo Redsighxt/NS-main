@@ -61,6 +61,7 @@ import {
   type VirtualPageReplayConfig,
   type ExtendedReplaySettings,
 } from "../../lib/advancedVirtualPageReplay";
+import { NativeReplayWindow } from "./NativeReplayWindow";
 
 type ScalingMode = "fit" | "fill" | "stretch" | "native";
 type ReplayResolution = "1920x1080" | "1280x720" | "auto";
@@ -1645,7 +1646,7 @@ export function AdvancedReplayWindow() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="fade">Fade</SelectItem>
-                      <SelectItem value="slide-left">Slide ←</SelectItem>
+                      <SelectItem value="slide-left">Slide ���</SelectItem>
                       <SelectItem value="slide-right">Slide →</SelectItem>
                       <SelectItem value="slide-up">Slide ↑</SelectItem>
                       <SelectItem value="slide-down">Slide ↓</SelectItem>
