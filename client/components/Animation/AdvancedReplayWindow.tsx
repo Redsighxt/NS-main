@@ -1373,34 +1373,33 @@ export function AdvancedReplayWindow() {
     return Math.max(100, Math.min(duration, 10000));
   };
 
-  // Get container dimensions for preview - always scale from 1920x1080
+  // Get container dimensions for preview - use actual replay dimensions
   const getPreviewDimensions = () => {
-    const baseWidth = 1920;
-    const baseHeight = 1080;
+    const { width: replayWidth, height: replayHeight } = getReplayDimensions();
 
     if (isFullscreen) {
       const availableWidth = window.innerWidth - 40;
       const availableHeight = window.innerHeight - 200;
       const scale = Math.min(
-        availableWidth / baseWidth,
-        availableHeight / baseHeight,
+        availableWidth / replayWidth,
+        availableHeight / replayHeight,
       );
       return {
         scale,
-        width: baseWidth * scale,
-        height: baseHeight * scale,
+        width: replayWidth * scale,
+        height: replayHeight * scale,
       };
     } else {
       const containerWidth = 480;
       const containerHeight = 300;
       const scale = Math.min(
-        containerWidth / baseWidth,
-        containerHeight / baseHeight,
+        containerWidth / replayWidth,
+        containerHeight / replayHeight,
       );
       return {
         scale,
-        width: baseWidth * scale,
-        height: baseHeight * scale,
+        width: replayWidth * scale,
+        height: replayHeight * scale,
       };
     }
   };
