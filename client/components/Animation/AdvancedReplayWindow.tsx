@@ -330,42 +330,46 @@ export function AdvancedReplayWindow() {
         // EXACT SAME LOGIC AS LAYER REPLAY POPUP WINDOW
         console.log("Using layer mode for preview");
 
-        const originBoxConfig: OriginBoxReplayConfig = {
+        // Use new virtual page replay system for preview
+        const previewConfig: VirtualPageReplayConfig = {
           width,
           height,
           backgroundColor: replaySettings.backgroundColor,
-          replayMode: replaySettings.replayMode,
+          mode: "layer",
           transitionType: replaySettings.transitionType,
           transitionDuration: replaySettings.transitionDuration,
-          pageByPage: replaySettings.pageByPage,
+          showPageIndicators: true,
+          showDebugTints: replaySettings.showDebugTints,
         };
 
-        // Use directSvgAnimation for preview to maintain progressive fills
-        await animateElementsDirectly(
+        const previewSettings: ExtendedReplaySettings = {
+          penStrokes: {
+            elementDuration: replaySettings.penStrokes.elementDuration,
+            groupDelay: replaySettings.penStrokes.groupDelay,
+            easing: replaySettings.penStrokes.easing,
+            trueSpeed: replaySettings.penStrokes.trueSpeed,
+            trueSpeedRate: replaySettings.penStrokes.trueSpeedRate,
+          },
+          shapes: {
+            elementDuration: replaySettings.shapes.elementDuration,
+            groupDelay: replaySettings.shapes.groupDelay,
+            easing: replaySettings.shapes.easing,
+          },
+          libraryObjects: {
+            elementDuration: replaySettings.libraryObjects.elementDuration,
+            groupDelay: replaySettings.libraryObjects.groupDelay,
+            easing: replaySettings.libraryObjects.easing,
+          },
+        };
+
+        await replayWithVirtualPages(
           elementsToReplay,
           canvasRef.current.parentElement as HTMLElement,
-          {
-            extendedConfig: {
-              penStrokes: {
-                elementDuration: replaySettings.penStrokes.elementDuration,
-                groupDelay: replaySettings.penStrokes.groupDelay,
-                easing: replaySettings.penStrokes.easing,
-              },
-              shapes: {
-                elementDuration: replaySettings.shapes.elementDuration,
-                groupDelay: replaySettings.shapes.groupDelay,
-                easing: replaySettings.shapes.easing,
-              },
-              libraryObjects: {
-                elementDuration: replaySettings.libraryObjects.elementDuration,
-                groupDelay: replaySettings.libraryObjects.groupDelay,
-                easing: replaySettings.libraryObjects.easing,
-              },
-            },
-            onProgress: (progress) => {
-              console.log(`Layer preview progress: ${progress}%`);
-              setProgress(progress);
-            },
+          previewConfig,
+          previewSettings,
+          (progress) => {
+            console.log(`Layer preview progress: ${progress}%`);
+            setProgress(progress);
           },
         );
       }
