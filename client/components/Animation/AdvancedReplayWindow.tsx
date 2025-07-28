@@ -53,9 +53,14 @@ import {
 } from "../../lib/chronologicalReplayAnimator";
 import {
   animateElementsDirectly,
-  animateElementsDirectlyWithVirtualPages,
   type ExtendedAnimationConfig,
 } from "../../lib/directSvgAnimation";
+import {
+  replayWithVirtualPages,
+  clearVirtualPageReplay,
+  type VirtualPageReplayConfig,
+  type ExtendedReplaySettings,
+} from "../../lib/advancedVirtualPageReplay";
 
 type ScalingMode = "fit" | "fill" | "stretch" | "native";
 type ReplayResolution = "1920x1080" | "1280x720" | "auto";
@@ -741,24 +746,48 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas);
         console.log("Extended config:", extendedConfig);
         
-        // Use enhanced directSvgAnimation system with virtual page support for proper progressive fills
-        await animateElementsDirectlyWithVirtualPages(
+        // Use new advanced virtual page replay system with progressive fills
+        const layerConfig: VirtualPageReplayConfig = {
+          width,
+          height,
+          backgroundColor: replaySettings.backgroundColor,
+          mode: "layer",
+          transitionType: replaySettings.transitionType,
+          transitionDuration: replaySettings.transitionDuration,
+          showPageIndicators: true,
+          showDebugTints: replaySettings.showDebugTints,
+        };
+
+        const layerSettings: ExtendedReplaySettings = {
+          penStrokes: {
+            elementDuration: replaySettings.penStrokes.elementDuration,
+            groupDelay: replaySettings.penStrokes.groupDelay,
+            easing: replaySettings.penStrokes.easing,
+            trueSpeed: replaySettings.penStrokes.trueSpeed,
+            trueSpeedRate: replaySettings.penStrokes.trueSpeedRate,
+          },
+          shapes: {
+            elementDuration: replaySettings.shapes.elementDuration,
+            groupDelay: replaySettings.shapes.groupDelay,
+            easing: replaySettings.shapes.easing,
+          },
+          libraryObjects: {
+            elementDuration: replaySettings.libraryObjects.elementDuration,
+            groupDelay: replaySettings.libraryObjects.groupDelay,
+            easing: replaySettings.libraryObjects.easing,
+          },
+        };
+
+        await replayWithVirtualPages(
           elementsToReplay,
           replayCanvas,
-          {
-            extendedConfig: extendedConfig,
-            mode: "layer",
-            showPageTransitions: true,
-            transitionDuration: replaySettings.transitionDuration,
-            onProgress: (progress) => {
-              console.log("Layer replay progress:", progress);
-              if (progressBar) {
-                progressBar.style.width = `${progress}%`;
-              }
-            },
-            onComplete: () => {
-              console.log("Layer replay animation completed");
-            },
+          layerConfig,
+          layerSettings,
+          (progress) => {
+            console.log("Layer replay progress:", progress);
+            if (progressBar) {
+              progressBar.style.width = `${progress}%`;
+            }
           },
         );
       } catch (error) {
@@ -771,8 +800,8 @@ export function AdvancedReplayWindow() {
 
     (replayWindow as any).stopReplay = () => {
       if (replayCanvas) {
-        // Clear the container for the directSvgAnimation system
-        replayCanvas.innerHTML = "";
+        // Clear the new virtual page replay system
+        clearVirtualPageReplay(replayCanvas);
         if (progressBar) {
           progressBar.style.width = "0%";
         }
@@ -1176,24 +1205,48 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas2);
         console.log("Extended config:", extendedConfig);
         
-        // Use enhanced directSvgAnimation system with virtual page support for proper progressive fills
-        await animateElementsDirectlyWithVirtualPages(
+        // Use new advanced virtual page replay system with progressive fills
+        const chronoConfig: VirtualPageReplayConfig = {
+          width,
+          height,
+          backgroundColor: replaySettings.backgroundColor,
+          mode: "chronological",
+          transitionType: replaySettings.transitionType,
+          transitionDuration: replaySettings.transitionDuration,
+          showPageIndicators: true,
+          showDebugTints: replaySettings.showDebugTints,
+        };
+
+        const chronoSettings: ExtendedReplaySettings = {
+          penStrokes: {
+            elementDuration: replaySettings.penStrokes.elementDuration,
+            groupDelay: replaySettings.penStrokes.groupDelay,
+            easing: replaySettings.penStrokes.easing,
+            trueSpeed: replaySettings.penStrokes.trueSpeed,
+            trueSpeedRate: replaySettings.penStrokes.trueSpeedRate,
+          },
+          shapes: {
+            elementDuration: replaySettings.shapes.elementDuration,
+            groupDelay: replaySettings.shapes.groupDelay,
+            easing: replaySettings.shapes.easing,
+          },
+          libraryObjects: {
+            elementDuration: replaySettings.libraryObjects.elementDuration,
+            groupDelay: replaySettings.libraryObjects.groupDelay,
+            easing: replaySettings.libraryObjects.easing,
+          },
+        };
+
+        await replayWithVirtualPages(
           elementsToReplay,
           replayCanvas2,
-          {
-            extendedConfig: extendedConfig,
-            mode: "chronological",
-            showPageTransitions: true,
-            transitionDuration: replaySettings.transitionDuration,
-            onProgress: (progress) => {
-              console.log("Chronological progress:", progress);
-              if (progressBar2) {
-                progressBar2.style.width = `${progress}%`;
-              }
-            },
-            onComplete: () => {
-              console.log("Chronological animation completed");
-            },
+          chronoConfig,
+          chronoSettings,
+          (progress) => {
+            console.log("Chronological progress:", progress);
+            if (progressBar2) {
+              progressBar2.style.width = `${progress}%`;
+            }
           },
         );
       } catch (error) {
@@ -1206,8 +1259,8 @@ export function AdvancedReplayWindow() {
 
     (replayWindow2 as any).stopReplay2 = () => {
       if (replayCanvas2) {
-        // Clear the container for the directSvgAnimation system
-        replayCanvas2.innerHTML = "";
+        // Clear the new virtual page replay system
+        clearVirtualPageReplay(replayCanvas2);
         if (progressBar2) {
           progressBar2.style.width = "0%";
         }
