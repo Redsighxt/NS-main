@@ -259,7 +259,7 @@ async function executeLayerReplay(
   const totalElements = elements.length;
 
   for (const group of pageGroups) {
-    console.log(`📖 Animating page ${group.page.id} with ${group.elements.length} elements`);
+    console.log(`���� Animating page ${group.page.id} with ${group.elements.length} elements`);
 
     // Show page transition (except for first page)
     if (processedGroups > 0) {
@@ -418,26 +418,26 @@ function createViewportManager(container: HTMLElement, config: VirtualPageReplay
  * Update viewport to show specific page content with proper scaling
  */
 function updateViewportForPage(viewport: HTMLElement, page: VirtualPage, config: VirtualPageReplayConfig): void {
-  // CRITICAL FIX: Don't change viewport dimensions - it should always be 1920x1080
-  // Instead, we translate the viewport content to show the correct page area
+  // CRITICAL FIX: For replay, we want to show the content as-is without translation
+  // The SVG export already handles the coordinate system properly
 
-  // Calculate translation to center the page content within the viewport
-  // For origin page, no translation needed
-  const translateX = page.isOrigin ? 0 : -page.x;
-  const translateY = page.isOrigin ? 0 : -page.y;
-
-  // Apply smooth transformation
-  viewport.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-  viewport.style.transform = `translate(${translateX}px, ${translateY}px)`;
+  // Remove any previous transformations that cause positioning issues
+  viewport.style.transition = 'none';
+  viewport.style.transform = 'none';
   viewport.style.transformOrigin = '0 0';
 
   // KEEP viewport at full origin box dimensions - NEVER change these
   viewport.style.width = '1920px';
   viewport.style.height = '1080px';
 
-  console.log(`🎯 Viewport positioned for page ${page.id} at (${page.x}, ${page.y})`);
-  console.log(`📐 Translation applied: (${translateX}, ${translateY})`);
-  console.log(`📏 Viewport dimensions maintained: 1920x1080`);
+  // Ensure content is visible and not clipped
+  viewport.style.overflow = 'visible';
+  viewport.style.position = 'absolute';
+  viewport.style.top = '0';
+  viewport.style.left = '0';
+
+  console.log(`🎯 Viewport set for page ${page.id} - no translation applied`);
+  console.log(`📏 Viewport dimensions: 1920x1080`);
 }
 
 /**
