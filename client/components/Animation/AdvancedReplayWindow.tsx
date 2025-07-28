@@ -53,6 +53,7 @@ import {
 } from "../../lib/chronologicalReplayAnimator";
 import {
   animateElementsDirectly,
+  animateElementsDirectlyWithVirtualPages,
   type ExtendedAnimationConfig,
 } from "../../lib/directSvgAnimation";
 
@@ -709,12 +710,15 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas);
         console.log("Extended config:", extendedConfig);
         
-        // Use enhanced directSvgAnimation system for proper progressive fills
-        await animateElementsDirectly(
+        // Use enhanced directSvgAnimation system with virtual page support for proper progressive fills
+        await animateElementsDirectlyWithVirtualPages(
           elementsToReplay,
           replayCanvas,
           {
             extendedConfig: extendedConfig,
+            mode: "layer",
+            showPageTransitions: true,
+            transitionDuration: replaySettings.transitionDuration,
             onProgress: (progress) => {
               console.log("Layer replay progress:", progress);
               if (progressBar) {
@@ -1141,12 +1145,15 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas2);
         console.log("Extended config:", extendedConfig);
         
-        // Use enhanced directSvgAnimation system for proper progressive fills
-        await animateElementsDirectly(
+        // Use enhanced directSvgAnimation system with virtual page support for proper progressive fills
+        await animateElementsDirectlyWithVirtualPages(
           elementsToReplay,
           replayCanvas2,
           {
             extendedConfig: extendedConfig,
+            mode: "chronological",
+            showPageTransitions: true,
+            transitionDuration: replaySettings.transitionDuration,
             onProgress: (progress) => {
               console.log("Chronological progress:", progress);
               if (progressBar2) {
