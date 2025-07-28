@@ -32,13 +32,13 @@ interface PageGroup {
  */
 export async function replayOriginBoxMode(
   elements: DrawingElement[],
-  canvas: HTMLCanvasElement,
+  container: HTMLElement,
   config: OriginBoxReplayConfig,
   settings: AnimationSettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
-  if (!canvas) {
-    const error = "No canvas provided for origin box replay";
+  if (!container) {
+    const error = "No container provided for origin box replay";
     console.error(error);
     throw new Error(error);
   }
@@ -53,27 +53,22 @@ export async function replayOriginBoxMode(
   console.log(
     `Starting ${config.replayMode} replay with ${elements.length} elements`,
   );
-  console.log(`Canvas size: ${canvas.width}x${canvas.height}`);
+  console.log(`Container size: ${config.width}x${config.height}`);
   console.log(`Config:`, config);
 
   // Always use origin page dimensions for replay window
   const originPage = virtualPagesManager.getOriginPage();
-  canvas.width = originPage.width;
-  canvas.height = originPage.height;
 
-  // Clear canvas
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    const error = "Failed to get canvas 2D context for origin box replay";
-    console.error(error);
-    throw new Error(error);
-  }
-
-  ctx.fillStyle = config.backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Clear container and set up for animation
+  container.innerHTML = "";
+  container.style.width = `${config.width}px`;
+  container.style.height = `${config.height}px`;
+  container.style.backgroundColor = config.backgroundColor;
+  container.style.position = "relative";
+  container.style.overflow = "hidden";
 
   // Create SVG overlay for animations
-  let svg = createAnimationSVG(canvas, originPage);
+  let svg = createAnimationSVG(container, originPage);
 
   // Group elements by page based on replay mode
   const pageGroups = groupElementsByMode(elements, config);
@@ -299,11 +294,11 @@ async function executePageTransitionMode(
  * Create animation SVG overlay
  */
 function createAnimationSVG(
-  canvas: HTMLCanvasElement,
+  container: HTMLElement,
   originPage: VirtualPage,
 ): SVGSVGElement {
   // Remove existing SVG
-  const existingSvg = canvas.parentElement?.querySelector(".origin-box-svg");
+  const existingSvg = container.querySelector(".origin-box-svg");
   if (existingSvg) existingSvg.remove();
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -330,7 +325,7 @@ function createAnimationSVG(
   svg.setAttribute("viewBox", `0 0 ${originPage.width} ${originPage.height}`);
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-  canvas.parentElement?.appendChild(svg);
+  container.appendChild(svg);
   return svg;
 }
 
@@ -664,11 +659,11 @@ async function animateElement(
  * Clear origin box animation overlay
  */
 export function clearOriginBoxAnimationOverlay(
-  canvas: HTMLCanvasElement,
+  container: HTMLElement,
 ): void {
-  if (!canvas || !canvas.parentElement) return;
+  if (!container) return;
 
-  const svg = canvas.parentElement.querySelector(
+  const svg = container.querySelector(
     ".origin-box-svg",
   ) as SVGSVGElement;
   if (svg) {
