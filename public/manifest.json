@@ -1,0 +1,41 @@
+{
+  "name": "RexSight Studio",
+  "short_name": "RexSight",
+  "description": "A powerful drawing studio with touch and Apple Pencil support",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "categories": ["productivity", "graphics"],
+  "icons": [
+    {
+      "src": "/rexsight-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/rexsight-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Drawing",
+      "url": "/?action=new",
+      "description": "Start a new drawing"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

@@ -1,0 +1,395 @@
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap");
+
+/* Force Tailwind rebuild */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Text input feedback animation */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@layer base {
+  /**
+   * Tailwind CSS theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
+  */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Drawing Studio Colors */
+    --canvas-background: 0 0% 98%;
+    --canvas-grid: 0 0% 92%;
+    --canvas-selection: 210 100% 50%;
+    --tool-active: 210 100% 50%;
+    --tool-hover: 210 100% 95%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Drawing Studio Colors - Dark Mode */
+    --canvas-background: 222.2 84% 4.9%;
+    --canvas-grid: 217.2 32.6% 17.5%;
+    --canvas-selection: 212.7 26.8% 83.9%;
+    --tool-active: 212.7 26.8% 83.9%;
+    --tool-hover: 217.2 32.6% 17.5%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    overflow: hidden;
+    /* Prevent touch behaviors that interfere with drawing */
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    /* Optimize for touch devices */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent rubber band scrolling on iOS */
+    overscroll-behavior: none;
+  }
+
+  /* Specific touch optimizations for canvas and drawing areas */
+  canvas {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+  }
+
+  /* Touch optimizations for buttons and interactive elements */
+  button,
+  [role="button"],
+  .floating-panel button,
+  .dock button {
+    /* Improve touch target size */
+    min-height: 44px;
+    min-width: 44px;
+    /* Prevent text selection on touch */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    /* Remove touch delay on iOS */
+    -webkit-tap-highlight-color: transparent;
+    /* Improve touch responsiveness */
+    cursor: pointer;
+    /* Ensure pointer events work for Apple Pencil and touch */
+    touch-action: manipulation;
+    /* Force hardware acceleration for better touch responsiveness */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  /* Override min-size for small color palette buttons */
+  .floating-panel button.w-5,
+  .floating-panel button.h-5,
+  .floating-panel .w-5.h-5,
+  button.w-5.h-5,
+  [role="button"].w-5.h-5 {
+    min-height: 20px !important;
+    min-width: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+  }
+
+  /* Specific override for color palette grid containers */
+  .grid.grid-cols-10 button,
+  .grid.grid-cols-10 [role="button"] {
+    min-height: 20px !important;
+    min-width: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    padding: 0 !important;
+  }
+
+  /* Final override for color-box variant buttons */
+  button[class*="color-box"],
+  .floating-panel button[class*="color-box"] {
+    min-height: 20px !important;
+    min-width: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Optimize sliders for touch */
+  input[type="range"] {
+    /* Increase touch target */
+    height: 44px;
+    -webkit-appearance: none;
+    background: transparent;
+    touch-action: pan-x;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    /* Larger thumb for easier touch interaction */
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+
+  /* Improve touch scrolling for panels */
+  .floating-panel .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize floating panels for touch */
+  .floating-panel {
+    /* Prevent text selection while dragging */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+
+  .floating-panel .panel-content {
+    /* Allow text selection within panel content */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+  }
+
+  /* Floating panel header optimizations for Apple Pencil */
+  .floating-panel .floating-panel-header {
+    /* Ensure touch events work properly */
+    touch-action: none;
+    /* Force hardware acceleration */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* Improve pointer event handling */
+    pointer-events: auto;
+    /* Prevent interference from child elements */
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header buttons specific optimizations */
+  .floating-panel .floating-panel-header button {
+    /* Increase touch target for header buttons */
+    min-height: 32px;
+    min-width: 32px;
+    /* Ensure proper touch handling */
+    touch-action: manipulation;
+    /* Better pointer event handling */
+    pointer-events: auto;
+    /* Remove any touch delays */
+    -webkit-tap-highlight-color: transparent;
+    /* Force hardware acceleration */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* Better stylus interaction */
+    cursor: pointer;
+  }
+
+  /* Dock button optimizations */
+  .dock button,
+  .panel-dock button {
+    /* Ensure proper touch handling for dock buttons */
+    touch-action: manipulation;
+    pointer-events: auto;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* Better Apple Pencil responsiveness */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Apple Pencil specific optimizations */
+  @media (pointer: fine) and (hover: none) {
+    /* iPad with Apple Pencil detection */
+    body {
+      /* More precise touch handling for stylus */
+      touch-action: manipulation;
+    }
+
+    /* Reduce button sizes slightly for precise stylus input */
+    button:not(.tool-button):not(.dock-button) {
+      min-height: 40px;
+      min-width: 40px;
+    }
+  }
+
+  /* Large touch device optimizations */
+  @media (pointer: coarse) {
+    /* Finger touch devices */
+    button,
+    [role="button"] {
+      /* Larger touch targets for fingers */
+      min-height: 48px;
+      min-width: 48px;
+    }
+
+    /* Increase spacing for easier touch navigation */
+    .tool-panel .tools-grid {
+      gap: 8px;
+    }
+
+    .floating-panel .space-y-2 > * + * {
+      margin-top: 12px;
+    }
+  }
+
+  /* Modern Scrollbar Styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.5) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.5);
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.8);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Floating panel scrollbars */
+  .floating-panel *::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+
+  .floating-panel *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.7);
+  }
+
+  /* Dark theme specific improvements */
+  .dark *::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.9);
+  }
+}
