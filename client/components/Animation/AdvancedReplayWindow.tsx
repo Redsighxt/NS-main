@@ -279,16 +279,33 @@ export function AdvancedReplayWindow() {
           transitionDuration: replaySettings.transitionDuration,
         };
 
-        await replayChronologicalMode(
+        // Use directSvgAnimation for preview to maintain progressive fills
+        await animateElementsDirectly(
           elementsToReplay,
-          canvasRef.current,
-          chronologicalConfig,
-          animationState.settings,
-          (progress) => {
-            console.log(`Chronological preview progress: ${progress}%`);
-            setProgress(progress);
+          canvasRef.current.parentElement as HTMLElement,
+          {
+            extendedConfig: {
+              penStrokes: {
+                elementDuration: replaySettings.penStrokes.elementDuration,
+                groupDelay: replaySettings.penStrokes.groupDelay,
+                easing: replaySettings.penStrokes.easing,
+              },
+              shapes: {
+                elementDuration: replaySettings.shapes.elementDuration,
+                groupDelay: replaySettings.shapes.groupDelay,
+                easing: replaySettings.shapes.easing,
+              },
+              libraryObjects: {
+                elementDuration: replaySettings.libraryObjects.elementDuration,
+                groupDelay: replaySettings.libraryObjects.groupDelay,
+                easing: replaySettings.libraryObjects.easing,
+              },
+            },
+            onProgress: (progress) => {
+              console.log(`Chronological preview progress: ${progress}%`);
+              setProgress(progress);
+            },
           },
-          replaySettings.showDebugTints,
         );
       } else {
         // EXACT SAME LOGIC AS LAYER REPLAY POPUP WINDOW
@@ -304,16 +321,33 @@ export function AdvancedReplayWindow() {
           pageByPage: replaySettings.pageByPage,
         };
 
-        await replayOriginBoxMode(
+        // Use directSvgAnimation for preview to maintain progressive fills
+        await animateElementsDirectly(
           elementsToReplay,
-          canvasRef.current,
-          originBoxConfig,
-          animationState.settings,
-          (progress) => {
-            console.log(`Layer preview progress: ${progress}%`);
-            setProgress(progress);
+          canvasRef.current.parentElement as HTMLElement,
+          {
+            extendedConfig: {
+              penStrokes: {
+                elementDuration: replaySettings.penStrokes.elementDuration,
+                groupDelay: replaySettings.penStrokes.groupDelay,
+                easing: replaySettings.penStrokes.easing,
+              },
+              shapes: {
+                elementDuration: replaySettings.shapes.elementDuration,
+                groupDelay: replaySettings.shapes.groupDelay,
+                easing: replaySettings.shapes.easing,
+              },
+              libraryObjects: {
+                elementDuration: replaySettings.libraryObjects.elementDuration,
+                groupDelay: replaySettings.libraryObjects.groupDelay,
+                easing: replaySettings.libraryObjects.easing,
+              },
+            },
+            onProgress: (progress) => {
+              console.log(`Layer preview progress: ${progress}%`);
+              setProgress(progress);
+            },
           },
-          replaySettings.showDebugTints,
         );
       }
 
