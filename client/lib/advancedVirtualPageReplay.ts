@@ -119,15 +119,28 @@ function setupReplayContainer(container: HTMLElement, config: VirtualPageReplayC
   // Clear container
   container.innerHTML = "";
 
-  // Setup container styles
-  container.style.width = `${config.width}px`;
-  container.style.height = `${config.height}px`;
+  // CRITICAL FIX: Always use the full origin box dimensions (1920x1080)
+  // The container should represent the full virtual canvas space
+  const virtualCanvasWidth = 1920;
+  const virtualCanvasHeight = 1080;
+
+  // Setup container styles to match full origin box
+  container.style.width = `${virtualCanvasWidth}px`;
+  container.style.height = `${virtualCanvasHeight}px`;
   container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
   container.style.overflow = "hidden";
-  container.style.border = "1px solid #e0e0e0"; // Debug border
 
-  console.log(`📦 Container setup: ${config.width}x${config.height}, bg: ${config.backgroundColor}`);
+  // Remove debug border that might interfere with content
+  container.style.border = "none";
+
+  // Ensure the container fills its parent properly
+  container.style.maxWidth = "100%";
+  container.style.maxHeight = "100%";
+  container.style.objectFit = "contain";
+
+  console.log(`📦 Container setup: ${virtualCanvasWidth}x${virtualCanvasHeight} (full origin box), bg: ${config.backgroundColor}`);
+  console.log(`📏 Original config requested: ${config.width}x${config.height}`);
 }
 
 /**
@@ -367,23 +380,31 @@ function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
  * Create viewport manager for handling page views
  */
 function createViewportManager(container: HTMLElement, config: VirtualPageReplayConfig) {
-  // Create main viewport div
+  // Create main viewport div that represents the full 1920x1080 canvas space
   const viewport = document.createElement("div");
   viewport.className = "virtual-page-viewport";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
-  viewport.style.width = "100%";
-  viewport.style.height = "100%";
-  viewport.style.overflow = "hidden";
-  
-  // Optional debug tint
+
+  // CRITICAL FIX: Set viewport to full origin box dimensions
+  viewport.style.width = "1920px";
+  viewport.style.height = "1080px";
+  viewport.style.overflow = "visible"; // Allow content to be visible
+
+  // The viewport should not be scaled or transformed initially
+  viewport.style.transform = "none";
+  viewport.style.transformOrigin = "0 0";
+
+  // Optional debug tint to see the blue lines issue
   if (config.showDebugTints) {
-    viewport.style.backgroundColor = "rgba(255, 0, 255, 0.05)";
-    console.log("🔍 Debug tint enabled for viewport");
+    viewport.style.backgroundColor = "rgba(0, 100, 255, 0.1)"; // Blue debug
+    viewport.style.border = "2px solid rgba(0, 100, 255, 0.5)";
+    console.log("🔍 Debug tint enabled for viewport - blue border visible");
   }
-  
+
   container.appendChild(viewport);
+  console.log(`🎯 Viewport created: 1920x1080 (full origin box)`);
   return viewport;
 }
 
@@ -391,24 +412,26 @@ function createViewportManager(container: HTMLElement, config: VirtualPageReplay
  * Update viewport to show specific page content with proper scaling
  */
 function updateViewportForPage(viewport: HTMLElement, page: VirtualPage, config: VirtualPageReplayConfig): void {
-  // For virtual page replay, we show the page content within our fixed viewport
-  // The viewport acts as a "window" into the virtual page space
+  // CRITICAL FIX: Don't change viewport dimensions - it should always be 1920x1080
+  // Instead, we translate the viewport content to show the correct page area
 
-  // Simple translation to show the page content
-  // We translate so that the page's top-left corner is at viewport's top-left
-  const translateX = -page.x;
-  const translateY = -page.y;
+  // Calculate translation to center the page content within the viewport
+  // For origin page, no translation needed
+  const translateX = page.isOrigin ? 0 : -page.x;
+  const translateY = page.isOrigin ? 0 : -page.y;
 
   // Apply smooth transformation
   viewport.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
   viewport.style.transform = `translate(${translateX}px, ${translateY}px)`;
   viewport.style.transformOrigin = '0 0';
 
-  // Ensure viewport shows within bounds
-  viewport.style.width = `${page.width}px`;
-  viewport.style.height = `${page.height}px`;
+  // KEEP viewport at full origin box dimensions - NEVER change these
+  viewport.style.width = '1920px';
+  viewport.style.height = '1080px';
 
   console.log(`🎯 Viewport positioned for page ${page.id} at (${page.x}, ${page.y})`);
+  console.log(`📐 Translation applied: (${translateX}, ${translateY})`);
+  console.log(`📏 Viewport dimensions maintained: 1920x1080`);
 }
 
 /**
