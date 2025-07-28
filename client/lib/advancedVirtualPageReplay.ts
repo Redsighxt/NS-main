@@ -1,4 +1,4 @@
-// Advanced Virtual Page Replay System - Built from scratch
+// Advanced Virtual Page Replay System - Fixed version
 // Handles chronological and layer replay modes with proper page transitions
 // Uses existing directSvgAnimation.ts for progressive fill animations
 
@@ -129,7 +129,7 @@ export async function replayWithVirtualPages(
 }
 
 /**
- * Setup the replay container with validation
+ * Setup the replay container with proper dimensions and scaling
  */
 function setupReplayContainer(
   container: HTMLElement,
@@ -151,32 +151,27 @@ function setupReplayContainer(
   // Clear container
   container.innerHTML = "";
 
-  // CRITICAL FIX: Always use the full origin box dimensions (1920x1080)
-  // The container should represent the full virtual canvas space
-  const virtualCanvasWidth = 1920;
-  const virtualCanvasHeight = 1080;
-
-  // Setup container styles to match full origin box
-  container.style.width = `${virtualCanvasWidth}px`;
-  container.style.height = `${virtualCanvasHeight}px`;
+  // CRITICAL FIX: Use the requested dimensions instead of hard-coded 1920x1080
+  // This respects the user's configuration and prevents zoom issues
+  container.style.width = `${config.width}px`;
+  container.style.height = `${config.height}px`;
   container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
-  container.style.overflow = "visible"; // CRITICAL: Allow content to be visible
+  container.style.overflow = "visible"; // Allow content to be visible
 
-  // Remove all borders and debug elements that could cause blue lines
+  // Remove all borders and debug elements that could cause visual artifacts
   container.style.border = "none";
   container.style.outline = "none";
   container.style.boxShadow = "none";
 
-  // Ensure the container fills its parent properly
+  // Ensure the container scales properly within its parent
   container.style.maxWidth = "100%";
   container.style.maxHeight = "100%";
   container.style.objectFit = "contain";
 
   console.log(
-    `📦 Container setup: ${virtualCanvasWidth}x${virtualCanvasHeight} (full origin box), bg: ${config.backgroundColor}`,
+    `📦 Container setup: ${config.width}x${config.height}, bg: ${config.backgroundColor}`,
   );
-  console.log(`📏 Original config requested: ${config.width}x${config.height}`);
 }
 
 /**
@@ -443,29 +438,29 @@ function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
 }
 
 /**
- * Create viewport manager for handling page views
+ * Create viewport manager for handling page views - Fixed version
  */
 function createViewportManager(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
 ) {
-  // Create main viewport div that represents the full 1920x1080 canvas space
+  // Create main viewport div that matches the configuration dimensions
   const viewport = document.createElement("div");
   viewport.className = "virtual-page-viewport";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
 
-  // CRITICAL FIX: Set viewport to full origin box dimensions
-  viewport.style.width = "1920px";
-  viewport.style.height = "1080px";
+  // CRITICAL FIX: Use the config dimensions instead of hard-coded values
+  viewport.style.width = `${config.width}px`;
+  viewport.style.height = `${config.height}px`;
   viewport.style.overflow = "visible"; // Allow content to be visible
 
   // The viewport should not be scaled or transformed initially
   viewport.style.transform = "none";
   viewport.style.transformOrigin = "0 0";
 
-  // Optional debug tint with reduced blue line visibility
+  // Optional debug tint with reduced visibility
   if (config.showDebugTints) {
     viewport.style.backgroundColor = "rgba(255, 255, 0, 0.05)"; // Very light yellow debug
     viewport.style.border = "1px dashed rgba(255, 165, 0, 0.3)"; // Light orange dashed border
@@ -477,38 +472,48 @@ function createViewportManager(
   }
 
   container.appendChild(viewport);
-  console.log(`🎯 Viewport created: 1920x1080 (full origin box)`);
+  console.log(`🎯 Viewport created: ${config.width}x${config.height}`);
   return viewport;
 }
 
 /**
- * Update viewport to show specific page content with proper scaling
+ * Update viewport to show specific page content - Fixed version
  */
 function updateViewportForPage(
   viewport: HTMLElement,
   page: VirtualPage,
   config: VirtualPageReplayConfig,
 ): void {
-  // CRITICAL FIX: For replay, we want to show the content as-is without translation
-  // The SVG export already handles the coordinate system properly
+  console.log(`🎯 Updating viewport for page ${page.id}`, page);
 
-  // Remove any previous transformations that cause positioning issues
-  viewport.style.transition = "none";
-  viewport.style.transform = "none";
+  // CRITICAL FIX: Handle page translation properly
+  // Only apply translation if not on origin page
+  let translateX = 0;
+  let translateY = 0;
+
+  if (!page.isOrigin) {
+    // Calculate the translation needed to show this page's content
+    // Virtual pages are positioned relative to origin
+    translateX = -page.x;
+    translateY = -page.y;
+  }
+
+  // Apply the translation to show the correct page content
+  viewport.style.transition = "transform 0.3s ease-out";
+  viewport.style.transform = `translate(${translateX}px, ${translateY}px)`;
   viewport.style.transformOrigin = "0 0";
 
-  // KEEP viewport at full origin box dimensions - NEVER change these
-  viewport.style.width = "1920px";
-  viewport.style.height = "1080px";
-
-  // Ensure content is visible and not clipped
+  // Keep viewport dimensions consistent
+  viewport.style.width = `${config.width}px`;
+  viewport.style.height = `${config.height}px`;
   viewport.style.overflow = "visible";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
 
-  console.log(`🎯 Viewport set for page ${page.id} - no translation applied`);
-  console.log(`📏 Viewport dimensions: 1920x1080`);
+  console.log(
+    `🎯 Viewport updated for page ${page.id} - translation: (${translateX}, ${translateY})`,
+  );
 }
 
 /**
@@ -905,7 +910,7 @@ export function getVirtualPageSystemInfo(): object {
   const allPages = virtualPagesManager.getAllPages();
 
   return {
-    version: "1.0.0",
+    version: "1.1.0", // Updated version
     totalPages: stats.totalPages,
     pagesWithElements: stats.pagesWithElements,
     totalElements: stats.totalElements,
