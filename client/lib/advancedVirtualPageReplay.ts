@@ -554,18 +554,30 @@ async function animatePageElements(
   elements: DrawingElement[],
   viewport: HTMLElement,
   settings: ExtendedReplaySettings,
+  onProgress?: (progress: number) => void,
 ): Promise<void> {
   // Sort elements by timestamp within the page
   const sortedElements = [...elements].sort((a, b) => a.timestamp - b.timestamp);
-  
-  // Use existing directSvgAnimation system for progressive fills
-  const delay = settings.penStrokes.groupDelay; // Use pen stroke delay as base
-  
-  await animateDrawingElements(sortedElements, viewport, {
-    duration: settings.penStrokes.elementDuration,
-    delay: delay,
-    easing: settings.penStrokes.easing,
-  });
+
+  // Animate elements one by one for better control and progress tracking
+  for (let i = 0; i < sortedElements.length; i++) {
+    const element = sortedElements[i];
+
+    // Animate single element with progressive fills
+    await animateElementInViewport(element, viewport, settings);
+
+    // Report progress
+    if (onProgress) {
+      const progress = ((i + 1) / sortedElements.length) * 100;
+      onProgress(progress);
+    }
+
+    // Wait for delay between elements (except last element)
+    if (i < sortedElements.length - 1) {
+      const delay = getElementDelay(element, settings);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
 }
 
 /**
