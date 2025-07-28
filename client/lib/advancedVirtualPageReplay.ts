@@ -105,20 +105,29 @@ export async function replayWithVirtualPages(
 }
 
 /**
- * Setup the replay container
+ * Setup the replay container with validation
  */
 function setupReplayContainer(container: HTMLElement, config: VirtualPageReplayConfig): void {
+  if (!container) {
+    throw new Error("Container element is required");
+  }
+
+  if (!config.width || !config.height || config.width <= 0 || config.height <= 0) {
+    throw new Error("Valid width and height are required");
+  }
+
   // Clear container
   container.innerHTML = "";
-  
+
   // Setup container styles
   container.style.width = `${config.width}px`;
   container.style.height = `${config.height}px`;
-  container.style.backgroundColor = config.backgroundColor;
+  container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
   container.style.overflow = "hidden";
-  
-  console.log(`📦 Container setup: ${config.width}x${config.height}`);
+  container.style.border = "1px solid #e0e0e0"; // Debug border
+
+  console.log(`📦 Container setup: ${config.width}x${config.height}, bg: ${config.backgroundColor}`);
 }
 
 /**
