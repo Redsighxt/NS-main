@@ -287,6 +287,7 @@ export function AdvancedReplayWindow() {
             console.log(`Chronological preview progress: ${progress}%`);
             setProgress(progress);
           },
+          replaySettings.showDebugTints,
         );
       } else {
         // EXACT SAME LOGIC AS LAYER REPLAY POPUP WINDOW
@@ -311,6 +312,7 @@ export function AdvancedReplayWindow() {
             console.log(`Layer preview progress: ${progress}%`);
             setProgress(progress);
           },
+          replaySettings.showDebugTints,
         );
       }
 
@@ -719,6 +721,7 @@ export function AdvancedReplayWindow() {
               progressBar.style.width = `${progress}%`;
             }
           },
+          replaySettings.showDebugTints,
         );
       } catch (error) {
         console.error("Replay window error:", error);
@@ -869,7 +872,7 @@ export function AdvancedReplayWindow() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>⏰ ${width}��${height} Chronological Mode - Window 2</title>
+          <title>�� ${width}��${height} Chronological Mode - Window 2</title>
           <style>
             * { box-sizing: border-box; }
             body {
@@ -1148,6 +1151,7 @@ export function AdvancedReplayWindow() {
               progressBar2.style.width = `${progress}%`;
             }
           },
+          replaySettings.showDebugTints,
         );
       } catch (error) {
         console.error("Replay window 2 error:", error);
