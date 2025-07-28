@@ -653,7 +653,7 @@ function createAppState(): any {
     scrollX: 0,
     scrollY: 0,
     width: 1920,  // CRITICAL FIX: Use origin box dimensions
-    height: 600,
+    height: 1080, // CRITICAL FIX: Use origin box dimensions
   };
 }
 
