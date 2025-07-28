@@ -701,20 +701,17 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas);
         console.log("Extended config:", extendedConfig);
         
-        await animateElementsDirectly(
+        // Use proper origin box replay system with page transitions
+        await replayOriginBoxMode(
           elementsToReplay,
           replayCanvas,
-          {
-            extendedConfig: extendedConfig,
-            onProgress: (progress) => {
-              console.log("Animation progress:", progress);
-              if (progressBar) {
-                progressBar.style.width = `${progress}%`;
-              }
-            },
-            onComplete: () => {
-              console.log("Layer replay animation completed");
-            },
+          originBoxConfig,
+          modifiedSettings,
+          (progress) => {
+            console.log("Layer replay progress:", progress);
+            if (progressBar) {
+              progressBar.style.width = `${progress}%`;
+            }
           },
         );
       } catch (error) {
@@ -1132,20 +1129,17 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas2);
         console.log("Extended config:", extendedConfig);
         
-        await animateElementsDirectly(
+        // Use proper chronological replay system with page transitions
+        await replayChronologicalMode(
           elementsToReplay,
           replayCanvas2,
-          {
-            extendedConfig: extendedConfig,
-            onProgress: (progress) => {
-              console.log("Animation progress:", progress);
-              if (progressBar2) {
-                progressBar2.style.width = `${progress}%`;
-              }
-            },
-            onComplete: () => {
-              console.log("Chronological animation completed");
-            },
+          chronologicalConfig,
+          modifiedSettings2,
+          (progress) => {
+            console.log("Chronological progress:", progress);
+            if (progressBar2) {
+              progressBar2.style.width = `${progress}%`;
+            }
           },
         );
       } catch (error) {
