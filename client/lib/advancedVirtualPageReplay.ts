@@ -1,6 +1,7 @@
-// Advanced Virtual Page Replay System - Fixed version
+// Advanced Virtual Page Replay System - Viewport Compatible Version
 // Handles chronological and layer replay modes with proper page transitions
 // Uses existing directSvgAnimation.ts for progressive fill animations
+// FIXED: Compatible with infinite canvas ViewTransform coordinate system
 
 import type { DrawingElement } from "../contexts/DrawingContext";
 import type { AnimationSettings } from "../contexts/AnimationContext";
@@ -99,8 +100,12 @@ export async function replayWithVirtualPages(
     Array.from(pageDistribution.entries()),
   );
 
-  // Clear and setup container
-  setupReplayContainer(container, config);
+  // CRITICAL FIX: Calculate element bounds for proper viewport setup
+  const elementBounds = calculateElementBounds(elements);
+  console.log(`📏 Element bounds:`, elementBounds);
+
+  // Clear and setup container with viewport-compatible dimensions
+  setupReplayContainer(container, config, elementBounds);
 
   try {
     if (config.mode === "chronological") {
@@ -129,48 +134,115 @@ export async function replayWithVirtualPages(
 }
 
 /**
- * Setup the replay container with proper dimensions and scaling
+ * Calculate bounds of all elements for proper viewport setup
+ */
+function calculateElementBounds(elements: DrawingElement[]) {
+  if (elements.length === 0) {
+    return { minX: 0, minY: 0, maxX: 1920, maxY: 1080 };
+  }
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  for (const element of elements) {
+    if (element.points && element.points.length > 0) {
+      // For path elements, check all points
+      for (const point of element.points) {
+        minX = Math.min(minX, point.x);
+        minY = Math.min(minY, point.y);
+        maxX = Math.max(maxX, point.x);
+        maxY = Math.max(maxY, point.y);
+      }
+    } else {
+      // For other elements, use x, y, width, height
+      const elementMaxX = element.x + (element.width || 0);
+      const elementMaxY = element.y + (element.height || 0);
+      minX = Math.min(minX, element.x);
+      minY = Math.min(minY, element.y);
+      maxX = Math.max(maxX, elementMaxX);
+      maxY = Math.max(maxY, elementMaxY);
+    }
+  }
+
+  // Add padding around content
+  const padding = 100;
+  return {
+    minX: minX - padding,
+    minY: minY - padding,
+    maxX: maxX + padding,
+    maxY: maxY + padding,
+  };
+}
+
+/**
+ * Setup the replay container with viewport-compatible dimensions
  */
 function setupReplayContainer(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
+  elementBounds: { minX: number; minY: number; maxX: number; maxY: number },
 ): void {
   if (!container) {
     throw new Error("Container element is required");
   }
 
-  if (
-    !config.width ||
-    !config.height ||
-    config.width <= 0 ||
-    config.height <= 0
-  ) {
-    throw new Error("Valid width and height are required");
-  }
-
   // Clear container
   container.innerHTML = "";
 
-  // CRITICAL FIX: Use the requested dimensions instead of hard-coded 1920x1080
-  // This respects the user's configuration and prevents zoom issues
-  container.style.width = `${config.width}px`;
-  container.style.height = `${config.height}px`;
+  // CRITICAL FIX: Set container to show content without zoom issues
+  // Use the container's parent dimensions for proper scaling
+  const parentRect = container.parentElement?.getBoundingClientRect();
+  const containerWidth = parentRect?.width || config.width;
+  const containerHeight = parentRect?.height || config.height;
+
+  // Calculate content dimensions
+  const contentWidth = elementBounds.maxX - elementBounds.minX;
+  const contentHeight = elementBounds.maxY - elementBounds.minY;
+
+  // Calculate scale to fit content in container
+  const scaleX = containerWidth / contentWidth;
+  const scaleY = containerHeight / contentHeight;
+  const scale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond 1:1
+
+  // VIEWPORT-COMPATIBLE SETUP: Use CSS transform instead of changing dimensions
+  container.style.width = `${contentWidth}px`;
+  container.style.height = `${contentHeight}px`;
   container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
-  container.style.overflow = "visible"; // Allow content to be visible
+  container.style.overflow = "visible";
+  
+  // CRITICAL: Apply transform to scale down content to fit container
+  container.style.transform = `scale(${scale})`;
+  container.style.transformOrigin = "top left";
+  
+  // Position to center content in the parent container
+  const offsetX = (containerWidth - contentWidth * scale) / 2;
+  const offsetY = (containerHeight - contentHeight * scale) / 2;
+  container.style.left = `${offsetX}px`;
+  container.style.top = `${offsetY}px`;
 
-  // Remove all borders and debug elements that could cause visual artifacts
+  // Remove problematic styles
   container.style.border = "none";
   container.style.outline = "none";
   container.style.boxShadow = "none";
 
-  // Ensure the container scales properly within its parent
-  container.style.maxWidth = "100%";
-  container.style.maxHeight = "100%";
-  container.style.objectFit = "contain";
+  // Store transform info for viewport calculations
+  (container as any).__replayTransform = {
+    scale,
+    offsetX: -elementBounds.minX,
+    offsetY: -elementBounds.minY,
+    contentWidth,
+    contentHeight,
+  };
 
   console.log(
-    `📦 Container setup: ${config.width}x${config.height}, bg: ${config.backgroundColor}`,
+    `📦 Viewport-compatible container setup:`,
+    {
+      containerSize: `${containerWidth}x${containerHeight}`,
+      contentSize: `${contentWidth}x${contentHeight}`,
+      scale,
+      elementBounds,
+      transform: (container as any).__replayTransform,
+    }
   );
 }
 
@@ -189,19 +261,6 @@ async function executeChronologicalReplay(
   // Build chronological timeline with page switches
   const timeline = buildChronologicalTimeline(elements);
   console.log(`📅 Timeline: ${timeline.length} events`);
-
-  // Log timeline for debugging
-  timeline.forEach((event, index) => {
-    if (event.type === "page-switch") {
-      console.log(
-        `  ${index + 1}. Page switch to ${event.toPage?.id} at ${event.timestamp}`,
-      );
-    } else {
-      console.log(
-        `  ${index + 1}. Element ${event.element?.id} (${event.element?.type}) at ${event.timestamp}`,
-      );
-    }
-  });
 
   // Create viewport manager for page transitions
   const viewport = createViewportManager(container, config);
@@ -438,46 +497,51 @@ function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
 }
 
 /**
- * Create viewport manager for handling page views - Fixed version
+ * Create viewport manager for handling page views - Viewport Compatible Version
  */
 function createViewportManager(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
 ) {
-  // Create main viewport div that matches the configuration dimensions
+  // Get transform info from container setup
+  const transformInfo = (container as any).__replayTransform;
+  
+  // Create main viewport div that handles coordinate translation
   const viewport = document.createElement("div");
   viewport.className = "virtual-page-viewport";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
 
-  // CRITICAL FIX: Use the config dimensions instead of hard-coded values
-  viewport.style.width = `${config.width}px`;
-  viewport.style.height = `${config.height}px`;
-  viewport.style.overflow = "visible"; // Allow content to be visible
+  // CRITICAL FIX: Use full content dimensions with coordinate offset
+  viewport.style.width = `${transformInfo.contentWidth}px`;
+  viewport.style.height = `${transformInfo.contentHeight}px`;
+  viewport.style.overflow = "visible";
 
-  // The viewport should not be scaled or transformed initially
-  viewport.style.transform = "none";
+  // Apply coordinate system offset to align with drawing context
+  viewport.style.transform = `translate(${transformInfo.offsetX}px, ${transformInfo.offsetY}px)`;
   viewport.style.transformOrigin = "0 0";
 
   // Optional debug tint with reduced visibility
   if (config.showDebugTints) {
-    viewport.style.backgroundColor = "rgba(255, 255, 0, 0.05)"; // Very light yellow debug
-    viewport.style.border = "1px dashed rgba(255, 165, 0, 0.3)"; // Light orange dashed border
-    console.log("🔍 Debug tint enabled for viewport - reduced visibility");
+    viewport.style.backgroundColor = "rgba(255, 255, 0, 0.05)";
+    viewport.style.border = "1px dashed rgba(255, 165, 0, 0.3)";
+    console.log("🔍 Debug tint enabled for viewport");
   } else {
-    // Ensure no debug artifacts when disabled
     viewport.style.backgroundColor = "transparent";
     viewport.style.border = "none";
   }
 
   container.appendChild(viewport);
-  console.log(`🎯 Viewport created: ${config.width}x${config.height}`);
+  console.log(`🎯 Viewport-compatible viewport created:`, {
+    dimensions: `${transformInfo.contentWidth}x${transformInfo.contentHeight}`,
+    offset: `${transformInfo.offsetX}, ${transformInfo.offsetY}`,
+  });
   return viewport;
 }
 
 /**
- * Update viewport to show specific page content - Fixed version
+ * Update viewport to show specific page content - Viewport Compatible Version
  */
 function updateViewportForPage(
   viewport: HTMLElement,
@@ -486,33 +550,36 @@ function updateViewportForPage(
 ): void {
   console.log(`🎯 Updating viewport for page ${page.id}`, page);
 
-  // CRITICAL FIX: Handle page translation properly
-  // Only apply translation if not on origin page
-  let translateX = 0;
-  let translateY = 0;
+  // CRITICAL FIX: Use smooth transitions without breaking coordinate system
+  let additionalTranslateX = 0;
+  let additionalTranslateY = 0;
 
   if (!page.isOrigin) {
-    // Calculate the translation needed to show this page's content
-    // Virtual pages are positioned relative to origin
-    translateX = -page.x;
-    translateY = -page.y;
+    // For non-origin pages, add small visual offset to indicate page change
+    // but don't break the coordinate system
+    additionalTranslateX = page.x * 0.1; // Subtle visual indicator
+    additionalTranslateY = page.y * 0.1;
   }
 
-  // Apply the translation to show the correct page content
+  // Get the base transform from container setup
+  const container = viewport.parentElement as HTMLElement;
+  const transformInfo = (container as any).__replayTransform;
+
+  // Apply smooth transition with coordinate system preservation
   viewport.style.transition = "transform 0.3s ease-out";
-  viewport.style.transform = `translate(${translateX}px, ${translateY}px)`;
+  viewport.style.transform = `translate(${transformInfo.offsetX + additionalTranslateX}px, ${transformInfo.offsetY + additionalTranslateY}px)`;
   viewport.style.transformOrigin = "0 0";
 
-  // Keep viewport dimensions consistent
-  viewport.style.width = `${config.width}px`;
-  viewport.style.height = `${config.height}px`;
+  // Maintain consistent dimensions
+  viewport.style.width = `${transformInfo.contentWidth}px`;
+  viewport.style.height = `${transformInfo.contentHeight}px`;
   viewport.style.overflow = "visible";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
 
   console.log(
-    `🎯 Viewport updated for page ${page.id} - translation: (${translateX}, ${translateY})`,
+    `🎯 Viewport updated for page ${page.id} - additional offset: (${additionalTranslateX}, ${additionalTranslateY})`,
   );
 }
 
@@ -910,7 +977,7 @@ export function getVirtualPageSystemInfo(): object {
   const allPages = virtualPagesManager.getAllPages();
 
   return {
-    version: "1.1.0", // Updated version
+    version: "1.2.0", // Updated version - viewport compatible
     totalPages: stats.totalPages,
     pagesWithElements: stats.pagesWithElements,
     totalElements: stats.totalElements,
