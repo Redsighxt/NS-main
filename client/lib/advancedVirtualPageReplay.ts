@@ -63,7 +63,7 @@ interface PageGroup {
 }
 
 /**
- * Main entry point for advanced virtual page replay
+ * Main entry point for advanced virtual page replay - WITH DEBUGGING
  */
 export async function replayWithVirtualPages(
   elements: DrawingElement[],
@@ -72,23 +72,45 @@ export async function replayWithVirtualPages(
   settings: ExtendedReplaySettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
-  console.log(
-    `🎬 Starting ${config.mode} replay with ${elements.length} elements`,
-  );
+  console.log("🚀 DEBUG: replayWithVirtualPages called");
+  console.log(`🎬 Starting ${config.mode} replay with ${elements.length} elements`);
+  console.log("🔧 DEBUG: Config:", config);
+  console.log("🔧 DEBUG: Settings:", settings);
+  console.log("🔧 DEBUG: Container details:", {
+    container,
+    tagName: container?.tagName,
+    className: container?.className,
+    id: container?.id,
+    parentElement: container?.parentElement?.tagName,
+    innerHTML: container?.innerHTML.substring(0, 100) + "..."
+  });
 
   if (!container) {
+    console.error("🔧 DEBUG: No container provided!");
     throw new Error("No container provided for virtual page replay");
   }
 
   if (elements.length === 0) {
+    console.error("🔧 DEBUG: No elements to animate!");
     throw new Error("No elements to animate");
   }
 
+  console.log("🔧 DEBUG: Elements to animate:", elements.map(e => ({
+    id: e.id,
+    type: e.type,
+    x: e.x,
+    y: e.y,
+    width: e.width,
+    height: e.height
+  })));
+
   // FIXED: Setup container properly first
+  console.log("🔧 DEBUG: Setting up container...");
   setupReplayContainer(container, config);
 
   try {
     if (config.mode === "chronological") {
+      console.log("🔧 DEBUG: Starting chronological replay");
       await executeChronologicalReplay(
         elements,
         container,
@@ -97,6 +119,7 @@ export async function replayWithVirtualPages(
         onProgress,
       );
     } else {
+      console.log("🔧 DEBUG: Starting layer replay");
       await executeLayerReplay(
         elements,
         container,
@@ -109,6 +132,7 @@ export async function replayWithVirtualPages(
     console.log(`🎉 Virtual page replay completed successfully`);
   } catch (error) {
     console.error("❌ Virtual page replay error:", error);
+    console.error("❌ ERROR STACK:", error.stack);
     throw error;
   }
 }
@@ -853,7 +877,7 @@ export function clearVirtualPageReplay(container: HTMLElement): void {
   const indicators = container.querySelectorAll(".page-indicator");
   if (indicators.length > 0) {
     indicators.forEach((i) => i.remove());
-    console.log(`🧹 ${indicators.length} indicators cleared`);
+    console.log(`��� ${indicators.length} indicators cleared`);
   }
 
   console.log("✅ Virtual page replay cleared completely");
