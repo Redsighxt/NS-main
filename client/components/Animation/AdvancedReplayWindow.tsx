@@ -671,7 +671,7 @@ export function AdvancedReplayWindow() {
 
     const replayCanvas = replayWindow.document.getElementById(
       "replayCanvas",
-    ) as HTMLCanvasElement;
+    ) as HTMLElement;
     const progressBar = replayWindow.document.getElementById(
       "progressBar",
     ) as HTMLElement;
@@ -1100,7 +1100,7 @@ export function AdvancedReplayWindow() {
 
     const replayCanvas2 = replayWindow2.document.getElementById(
       "replayCanvas2",
-    ) as HTMLCanvasElement;
+    ) as HTMLElement;
     const progressBar2 = replayWindow2.document.getElementById(
       "progressBar2",
     ) as HTMLElement;
