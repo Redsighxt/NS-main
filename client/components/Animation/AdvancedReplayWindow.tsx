@@ -396,7 +396,7 @@ export function AdvancedReplayWindow() {
     if (canvasRef.current && canvasRef.current.parentElement) {
       // Clear the SVG animations from the container
       const container = canvasRef.current.parentElement;
-      container.innerHTML = '';
+      container.innerHTML = "";
 
       // Re-add the canvas element
       container.appendChild(canvasRef.current);
@@ -663,7 +663,7 @@ export function AdvancedReplayWindow() {
           </div>
           <div class="main-content">
             <div class="replay-container">
-              <div id="replayCanvas" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width/1920, height/1080)});"></div>
+              <div id="replayCanvas" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width / 1920, height / 1080)});"></div>
             </div>
             <div class="controls">
               <button onclick="startReplay()" class="play-btn">▶ Play</button>
@@ -704,7 +704,6 @@ export function AdvancedReplayWindow() {
       );
 
       try {
-
         const originBoxConfig: OriginBoxReplayConfig = {
           width,
           height,
@@ -761,10 +760,13 @@ export function AdvancedReplayWindow() {
           },
         };
 
-        console.log("Starting layer replay animation with elements:", elementsToReplay.length);
+        console.log(
+          "Starting layer replay animation with elements:",
+          elementsToReplay.length,
+        );
         console.log("Container:", replayCanvas);
         console.log("Extended config:", extendedConfig);
-        
+
         // Use new advanced virtual page replay system with progressive fills
         const layerConfig: VirtualPageReplayConfig = {
           width,
@@ -1123,7 +1125,7 @@ export function AdvancedReplayWindow() {
           </div>
           <div class="main-content">
             <div class="replay-container">
-              <div id="replayCanvas2" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width/1920, height/1080)});"></div>
+              <div id="replayCanvas2" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width / 1920, height / 1080)});"></div>
             </div>
             <div class="controls">
               <button onclick="startReplay2()" class="play-btn">▶ Play</button>
@@ -1164,7 +1166,6 @@ export function AdvancedReplayWindow() {
       );
 
       try {
-
         const chronologicalConfig: ChronologicalReplayConfig = {
           width,
           height,
@@ -1220,10 +1221,13 @@ export function AdvancedReplayWindow() {
           },
         };
 
-        console.log("Starting chronological animation with elements:", elementsToReplay.length);
+        console.log(
+          "Starting chronological animation with elements:",
+          elementsToReplay.length,
+        );
         console.log("Container:", replayCanvas2);
         console.log("Extended config:", extendedConfig);
-        
+
         // Use new advanced virtual page replay system with progressive fills
         const chronoConfig: VirtualPageReplayConfig = {
           width,
@@ -1377,7 +1381,10 @@ export function AdvancedReplayWindow() {
     if (isFullscreen) {
       const availableWidth = window.innerWidth - 40;
       const availableHeight = window.innerHeight - 200;
-      const scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
+      const scale = Math.min(
+        availableWidth / baseWidth,
+        availableHeight / baseHeight,
+      );
       return {
         scale,
         width: baseWidth * scale,
@@ -1386,7 +1393,10 @@ export function AdvancedReplayWindow() {
     } else {
       const containerWidth = 480;
       const containerHeight = 300;
-      const scale = Math.min(containerWidth / baseWidth, containerHeight / baseHeight);
+      const scale = Math.min(
+        containerWidth / baseWidth,
+        containerHeight / baseHeight,
+      );
       return {
         scale,
         width: baseWidth * scale,

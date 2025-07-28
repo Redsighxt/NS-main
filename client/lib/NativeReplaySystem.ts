@@ -4,14 +4,24 @@
 
 import type { DrawingElement } from "../contexts/DrawingContext";
 import { NativeCanvasRenderer } from "./NativeCanvasRenderer";
-import { ProgressiveAnimationEngine, type AnimationSettings } from "./ProgressiveAnimationEngine";
+import {
+  ProgressiveAnimationEngine,
+  type AnimationSettings,
+} from "./ProgressiveAnimationEngine";
 import { virtualPagesManager, type VirtualPage } from "./virtualPagesManager";
 
 export interface NativeReplayConfig {
   mode: "chronological" | "layer";
   showPageTransitions: boolean;
   transitionDuration: number;
-  transitionType: "fade" | "slide-left" | "slide-right" | "slide-up" | "slide-down" | "zoom" | "none";
+  transitionType:
+    | "fade"
+    | "slide-left"
+    | "slide-right"
+    | "slide-up"
+    | "slide-down"
+    | "zoom"
+    | "none";
   showPageIndicators: boolean;
   autoScale: boolean;
 }
@@ -46,7 +56,7 @@ export class NativeReplaySystem {
   constructor(
     canvas: HTMLCanvasElement,
     config: NativeReplayConfig,
-    animationSettings: AnimationSettings
+    animationSettings: AnimationSettings,
   ) {
     this.canvas = canvas;
     this.config = config;
@@ -57,14 +67,19 @@ export class NativeReplaySystem {
       y: 0,
       scale: 1,
       width: canvas.width,
-      height: canvas.height
+      height: canvas.height,
     };
 
     // Initialize renderer and animation engine
     this.renderer = new NativeCanvasRenderer(canvas, this.viewport);
-    this.animationEngine = new ProgressiveAnimationEngine(this.renderer, animationSettings);
+    this.animationEngine = new ProgressiveAnimationEngine(
+      this.renderer,
+      animationSettings,
+    );
 
-    console.log(`NativeReplaySystem initialized: ${canvas.width}x${canvas.height}, mode: ${config.mode}`);
+    console.log(
+      `NativeReplaySystem initialized: ${canvas.width}x${canvas.height}, mode: ${config.mode}`,
+    );
   }
 
   /**
@@ -89,7 +104,10 @@ export class NativeReplaySystem {
     if (this.elements.length === 0) return;
 
     // Find bounding box of all elements
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
 
     for (const element of this.elements) {
       if (element.points && element.points.length > 0) {
@@ -129,7 +147,7 @@ export class NativeReplaySystem {
       y: offsetY,
       scale: scale,
       width: this.canvas.width,
-      height: this.canvas.height
+      height: this.canvas.height,
     };
 
     this.renderer.setViewTransform(this.viewport);
@@ -137,7 +155,7 @@ export class NativeReplaySystem {
     console.log(`Calculated optimal viewport:`, {
       contentBounds: { minX, minY, maxX, maxY },
       contentSize: { width: contentWidth, height: contentHeight },
-      viewport: this.viewport
+      viewport: this.viewport,
     });
   }
 
@@ -147,7 +165,7 @@ export class NativeReplaySystem {
   async startReplay(
     onProgress?: (progress: number) => void,
     onComplete?: () => void,
-    onPageChange?: (page: VirtualPage) => void
+    onPageChange?: (page: VirtualPage) => void,
   ): Promise<void> {
     if (this.elements.length === 0) {
       console.warn("No elements to replay");
@@ -175,15 +193,18 @@ export class NativeReplaySystem {
 
     // Build timeline for all elements
     const timeline = this.animationEngine.buildTimeline(this.elements);
-    
+
     // Group elements by page for transitions
     const pageGroups = this.groupElementsByPage(this.elements);
-    
+
     if (this.config.showPageTransitions && pageGroups.length > 1) {
       await this.playWithPageTransitions(timeline, pageGroups);
     } else {
       // Simple chronological playback
-      this.animationEngine.play(this.onProgressCallback, this.onCompleteCallback);
+      this.animationEngine.play(
+        this.onProgressCallback,
+        this.onCompleteCallback,
+      );
     }
   }
 
@@ -199,7 +220,9 @@ export class NativeReplaySystem {
 
     for (let i = 0; i < pageGroups.length; i++) {
       const group = pageGroups[i];
-      console.log(`Replaying page ${group.page.id} with ${group.elements.length} elements`);
+      console.log(
+        `Replaying page ${group.page.id} with ${group.elements.length} elements`,
+      );
 
       // Transition to page
       if (this.config.showPageTransitions) {
@@ -210,25 +233,26 @@ export class NativeReplaySystem {
 
       // Build timeline for this page's elements
       const pageTimeline = this.animationEngine.buildTimeline(group.elements);
-      
+
       // Play page animation
       await new Promise<void>((resolve) => {
         this.animationEngine.play(
           (pageProgress) => {
-            const overallProgress = ((i + pageProgress / 100) / totalPages) * 100;
+            const overallProgress =
+              ((i + pageProgress / 100) / totalPages) * 100;
             if (this.onProgressCallback) {
               this.onProgressCallback(overallProgress);
             }
           },
           () => {
             resolve();
-          }
+          },
         );
       });
 
       // Small delay between pages
       if (i < pageGroups.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
 
@@ -241,34 +265,44 @@ export class NativeReplaySystem {
   /**
    * Play with page transitions for chronological mode
    */
-  private async playWithPageTransitions(timeline: any, pageGroups: any[]): Promise<void> {
+  private async playWithPageTransitions(
+    timeline: any,
+    pageGroups: any[],
+  ): Promise<void> {
     // This is a complex implementation that would coordinate
     // timeline playback with page transitions
     // For now, fall back to simple playback
-    console.log("Page transitions in chronological mode not yet implemented, using simple playback");
+    console.log(
+      "Page transitions in chronological mode not yet implemented, using simple playback",
+    );
     this.animationEngine.play(this.onProgressCallback, this.onCompleteCallback);
   }
 
   /**
    * Group elements by virtual page
    */
-  private groupElementsByPage(elements: DrawingElement[]): Array<{ page: VirtualPage; elements: DrawingElement[] }> {
-    const pageMap = new Map<string, { page: VirtualPage; elements: DrawingElement[] }>();
+  private groupElementsByPage(
+    elements: DrawingElement[],
+  ): Array<{ page: VirtualPage; elements: DrawingElement[] }> {
+    const pageMap = new Map<
+      string,
+      { page: VirtualPage; elements: DrawingElement[] }
+    >();
 
     for (const element of elements) {
       const page = virtualPagesManager.findElementPage(element);
-      
+
       if (!pageMap.has(page.id)) {
         pageMap.set(page.id, { page, elements: [] });
       }
-      
+
       pageMap.get(page.id)!.elements.push(element);
     }
 
     // Sort by page appearance order (first element timestamp)
     return Array.from(pageMap.values()).sort((a, b) => {
-      const firstTimestampA = Math.min(...a.elements.map(e => e.timestamp));
-      const firstTimestampB = Math.min(...b.elements.map(e => e.timestamp));
+      const firstTimestampA = Math.min(...a.elements.map((e) => e.timestamp));
+      const firstTimestampB = Math.min(...b.elements.map((e) => e.timestamp));
       return firstTimestampA - firstTimestampB;
     });
   }
@@ -281,7 +315,7 @@ export class NativeReplaySystem {
 
     // Calculate viewport for this page
     const pageViewport = this.calculatePageViewport(page);
-    
+
     if (this.config.transitionType === "none") {
       // Instant transition
       this.viewport = pageViewport;
@@ -306,7 +340,9 @@ export class NativeReplaySystem {
   /**
    * Animate viewport transition
    */
-  private async animateViewportTransition(targetViewport: ReplayViewport): Promise<void> {
+  private async animateViewportTransition(
+    targetViewport: ReplayViewport,
+  ): Promise<void> {
     return new Promise((resolve) => {
       const startViewport = { ...this.viewport };
       const duration = this.config.transitionDuration;
@@ -319,11 +355,17 @@ export class NativeReplaySystem {
 
         // Interpolate viewport values
         this.viewport = {
-          x: startViewport.x + (targetViewport.x - startViewport.x) * easedProgress,
-          y: startViewport.y + (targetViewport.y - startViewport.y) * easedProgress,
-          scale: startViewport.scale + (targetViewport.scale - startViewport.scale) * easedProgress,
+          x:
+            startViewport.x +
+            (targetViewport.x - startViewport.x) * easedProgress,
+          y:
+            startViewport.y +
+            (targetViewport.y - startViewport.y) * easedProgress,
+          scale:
+            startViewport.scale +
+            (targetViewport.scale - startViewport.scale) * easedProgress,
           width: this.canvas.width,
-          height: this.canvas.height
+          height: this.canvas.height,
         };
 
         this.renderer.setViewTransform(this.viewport);
@@ -415,33 +457,33 @@ export class NativeReplaySystem {
     this.viewport.width = width;
     this.viewport.height = height;
     this.renderer.resize(width, height);
-    
+
     // Recalculate optimal viewport if auto-scaling
     if (this.config.autoScale) {
       this.calculateOptimalViewport();
     }
-    
+
     console.log(`Replay system resized to: ${width}x${height}`);
   }
 
   /**
    * Get current statistics
    */
-  getStats(): { 
-    elements: number; 
-    pages: number; 
-    isPlaying: boolean; 
+  getStats(): {
+    elements: number;
+    pages: number;
+    isPlaying: boolean;
     currentProgress: number;
     viewport: ReplayViewport;
   } {
     const pageGroups = this.groupElementsByPage(this.elements);
-    
+
     return {
       elements: this.elements.length,
       pages: pageGroups.length,
       isPlaying: this.animationEngine.getIsPlaying(),
       currentProgress: this.animationEngine.getCurrentProgress() * 100,
-      viewport: { ...this.viewport }
+      viewport: { ...this.viewport },
     };
   }
 

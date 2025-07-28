@@ -7,47 +7,59 @@ import { animateDrawingElements } from "./directSvgAnimation";
 /**
  * CRITICAL FIX: Transform element coordinates to viewport-relative coordinates
  */
-export function transformElementToViewportCoordinates(element: DrawingElement, viewport: HTMLElement): DrawingElement {
+export function transformElementToViewportCoordinates(
+  element: DrawingElement,
+  viewport: HTMLElement,
+): DrawingElement {
   // Get the current viewport transformation
   const viewportTransform = getViewportTransform(viewport);
-  
+
   // Create a deep copy of the element to avoid modifying the original
-  const transformedElement: DrawingElement = JSON.parse(JSON.stringify(element));
-  
+  const transformedElement: DrawingElement = JSON.parse(
+    JSON.stringify(element),
+  );
+
   // Apply viewport transformation to element coordinates
   transformedElement.x = element.x + viewportTransform.translateX;
   transformedElement.y = element.y + viewportTransform.translateY;
-  
+
   // Transform points if they exist (for paths, lines, arrows)
   if (element.points && element.points.length > 0) {
-    transformedElement.points = element.points.map(point => ({
+    transformedElement.points = element.points.map((point) => ({
       x: point.x + viewportTransform.translateX,
       y: point.y + viewportTransform.translateY,
     }));
   }
-  
-  console.log(`🔄 Element ${element.id} transformed: (${element.x}, ${element.y}) -> (${transformedElement.x}, ${transformedElement.y})`);
-  
+
+  console.log(
+    `🔄 Element ${element.id} transformed: (${element.x}, ${element.y}) -> (${transformedElement.x}, ${transformedElement.y})`,
+  );
+
   return transformedElement;
 }
 
 /**
  * Get viewport transformation values
  */
-export function getViewportTransform(viewport: HTMLElement): { translateX: number; translateY: number } {
+export function getViewportTransform(viewport: HTMLElement): {
+  translateX: number;
+  translateY: number;
+} {
   const transform = viewport.style.transform;
   let translateX = 0;
   let translateY = 0;
-  
-  if (transform && transform.includes('translate')) {
+
+  if (transform && transform.includes("translate")) {
     const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
     if (match) {
       translateX = parseFloat(match[1]) || 0;
       translateY = parseFloat(match[2]) || 0;
     }
   }
-  
-  console.log(`📏 Viewport transform: translateX=${translateX}, translateY=${translateY}`);
+
+  console.log(
+    `📏 Viewport transform: translateX=${translateX}, translateY=${translateY}`,
+  );
   return { translateX, translateY };
 }
 
@@ -62,7 +74,9 @@ export async function animateTransformedElementInViewport(
   const duration = getElementDuration(transformedElement, settings);
   const easing = getElementEasing(transformedElement, settings);
 
-  console.log(`🎨 Animating transformed element ${transformedElement.id} at (${transformedElement.x}, ${transformedElement.y})`);
+  console.log(
+    `🎨 Animating transformed element ${transformedElement.id} at (${transformedElement.x}, ${transformedElement.y})`,
+  );
 
   try {
     // Use existing directSvgAnimation system with pre-transformed element
@@ -72,9 +86,14 @@ export async function animateTransformedElementInViewport(
       easing: easing,
     });
 
-    console.log(`✅ Transformed element ${transformedElement.id} animation completed`);
+    console.log(
+      `✅ Transformed element ${transformedElement.id} animation completed`,
+    );
   } catch (error) {
-    console.error(`❌ Error animating transformed element ${transformedElement.id}:`, error);
+    console.error(
+      `❌ Error animating transformed element ${transformedElement.id}:`,
+      error,
+    );
   }
 }
 
@@ -85,7 +104,10 @@ function getElementDuration(element: DrawingElement, settings: any): number {
   switch (element.type) {
     case "path":
       if (settings.penStrokes?.trueSpeed) {
-        return calculateTrueSpeedDuration(element, settings.penStrokes.trueSpeedRate);
+        return calculateTrueSpeedDuration(
+          element,
+          settings.penStrokes.trueSpeedRate,
+        );
       }
       return settings.penStrokes?.elementDuration || 1000;
     case "highlighter":
@@ -127,7 +149,10 @@ function getElementEasing(element: DrawingElement, settings: any): string {
 /**
  * Calculate true speed duration for path elements
  */
-function calculateTrueSpeedDuration(element: DrawingElement, speedRate: number): number {
+function calculateTrueSpeedDuration(
+  element: DrawingElement,
+  speedRate: number,
+): number {
   if (!element.points || element.points.length < 2) {
     return 1000; // Default duration
   }

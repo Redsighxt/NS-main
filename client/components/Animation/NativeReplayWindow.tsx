@@ -32,7 +32,10 @@ import {
   Zap,
 } from "lucide-react";
 
-import { NativeReplaySystem, type NativeReplayConfig } from "../../lib/NativeReplaySystem";
+import {
+  NativeReplaySystem,
+  type NativeReplayConfig,
+} from "../../lib/NativeReplaySystem";
 import { type AnimationSettings } from "../../lib/ProgressiveAnimationEngine";
 import type { VirtualPage } from "../../lib/virtualPagesManager";
 
@@ -68,25 +71,27 @@ export function NativeReplayWindow() {
   });
 
   // Animation settings
-  const [animationSettings, setAnimationSettings] = useState<AnimationSettings>({
-    penStrokes: {
-      elementDuration: 800,
-      groupDelay: 200,
-      easing: "ease-out",
-      trueSpeed: false,
-      trueSpeedRate: 200,
+  const [animationSettings, setAnimationSettings] = useState<AnimationSettings>(
+    {
+      penStrokes: {
+        elementDuration: 800,
+        groupDelay: 200,
+        easing: "ease-out",
+        trueSpeed: false,
+        trueSpeedRate: 200,
+      },
+      shapes: {
+        elementDuration: 2000,
+        groupDelay: 300,
+        easing: "ease-out",
+      },
+      libraryObjects: {
+        elementDuration: 1500,
+        groupDelay: 250,
+        easing: "ease-out",
+      },
     },
-    shapes: {
-      elementDuration: 2000,
-      groupDelay: 300,
-      easing: "ease-out",
-    },
-    libraryObjects: {
-      elementDuration: 1500,
-      groupDelay: 250,
-      easing: "ease-out",
-    },
-  });
+  );
 
   // Get elements for replay
   const getElementsForReplay = useCallback(() => {
@@ -106,11 +111,17 @@ export function NativeReplayWindow() {
     if (!canvas) return null;
 
     try {
-      const replaySystem = new NativeReplaySystem(canvas, replayConfig, animationSettings);
+      const replaySystem = new NativeReplaySystem(
+        canvas,
+        replayConfig,
+        animationSettings,
+      );
       const elements = getElementsForReplay();
       replaySystem.loadElements(elements);
-      
-      console.log(`NativeReplaySystem initialized with ${elements.length} elements`);
+
+      console.log(
+        `NativeReplaySystem initialized with ${elements.length} elements`,
+      );
       return replaySystem;
     } catch (error) {
       console.error("Failed to initialize NativeReplaySystem:", error);
@@ -132,7 +143,6 @@ export function NativeReplayWindow() {
 
     // Initialize replay system
     replaySystemRef.current = initializeReplaySystem();
-
   }, [initializeReplaySystem]);
 
   // Handle play
@@ -168,11 +178,13 @@ export function NativeReplayWindow() {
         (page) => {
           setCurrentPage(page);
           console.log(`Page changed to: ${page.id}`);
-        }
+        },
       );
     } catch (error) {
       console.error("Native replay error:", error);
-      setReplayError(error instanceof Error ? error.message : "Unknown replay error");
+      setReplayError(
+        error instanceof Error ? error.message : "Unknown replay error",
+      );
       setIsPlaying(false);
     }
   }, [getElementsForReplay]);
@@ -225,25 +237,34 @@ export function NativeReplayWindow() {
     const windowFeatures = `width=${width},height=${height},scrollbars=no,resizable=yes,status=no,location=no,toolbar=no,menubar=no`;
 
     try {
-      const replayWindow = window.open("", "NativeReplayWindow", windowFeatures);
+      const replayWindow = window.open(
+        "",
+        "NativeReplayWindow",
+        windowFeatures,
+      );
       if (!replayWindow || replayWindow.closed) {
-        alert("Popup blocked! Please allow popups for this site to use the replay window.");
+        alert(
+          "Popup blocked! Please allow popups for this site to use the replay window.",
+        );
         return;
       }
 
-      const themeColors = actualTheme === "dark" ? {
-        bodyBg: "#0d1117",
-        headerBg: "#161b22",
-        textColor: "#f0f6fc",
-        cardBg: "#21262d",
-        primaryBg: "#238636",
-      } : {
-        bodyBg: "#f8f9fa",
-        headerBg: "#fff",
-        textColor: "#1a1a1a",
-        cardBg: "#fff",
-        primaryBg: "#007bff",
-      };
+      const themeColors =
+        actualTheme === "dark"
+          ? {
+              bodyBg: "#0d1117",
+              headerBg: "#161b22",
+              textColor: "#f0f6fc",
+              cardBg: "#21262d",
+              primaryBg: "#238636",
+            }
+          : {
+              bodyBg: "#f8f9fa",
+              headerBg: "#fff",
+              textColor: "#1a1a1a",
+              cardBg: "#fff",
+              primaryBg: "#007bff",
+            };
 
       replayWindow.document.write(`
         <!DOCTYPE html>
@@ -310,16 +331,22 @@ export function NativeReplayWindow() {
 
       replayWindow.document.close();
 
-      const canvas = replayWindow.document.getElementById("replayCanvas") as HTMLCanvasElement;
+      const canvas = replayWindow.document.getElementById(
+        "replayCanvas",
+      ) as HTMLCanvasElement;
       if (canvas) {
         // Initialize replay system in popup
-        const popupReplaySystem = new NativeReplaySystem(canvas, replayConfig, animationSettings);
+        const popupReplaySystem = new NativeReplaySystem(
+          canvas,
+          replayConfig,
+          animationSettings,
+        );
         popupReplaySystem.loadElements(elements);
 
         (replayWindow as any).playReplay = async () => {
           await popupReplaySystem.startReplay(
             (progress) => console.log(`Popup progress: ${progress}%`),
-            () => console.log("Popup replay completed")
+            () => console.log("Popup replay completed"),
           );
         };
 
@@ -366,18 +393,16 @@ export function NativeReplayWindow() {
         <div className="border rounded-lg p-4 bg-white dark:bg-gray-900">
           <div className="flex justify-between items-center mb-3">
             <Label className="font-medium">Preview Canvas</Label>
-            <Badge variant="outline">
-              {elements.length} elements
-            </Badge>
+            <Badge variant="outline">{elements.length} elements</Badge>
           </div>
-          
+
           <div className="relative">
             <canvas
               ref={canvasRef}
               className="border rounded bg-white w-full h-auto max-w-full"
               style={{ aspectRatio: "4/3" }}
             />
-            
+
             {currentPage && (
               <div className="absolute top-2 left-2 bg-blue-600/90 text-white text-xs px-2 py-1 rounded">
                 Page: {currentPage.isOrigin ? "Origin" : currentPage.id}
@@ -418,11 +443,7 @@ export function NativeReplayWindow() {
               <Square className="h-4 w-4" />
             </Button>
 
-            <Button
-              onClick={openPopupWindow}
-              variant="outline"
-              size="sm"
-            >
+            <Button onClick={openPopupWindow} variant="outline" size="sm">
               <Monitor className="h-4 w-4 mr-2" />
               Popup
             </Button>
@@ -456,14 +477,14 @@ export function NativeReplayWindow() {
             <TabsTrigger value="animation">Animation</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="mode" className="space-y-3">
             <div className="flex items-center justify-between">
               <Label>Replay Mode</Label>
               <Select
                 value={replayConfig.mode}
                 onValueChange={(value: "chronological" | "layer") =>
-                  setReplayConfig(prev => ({ ...prev, mode: value }))
+                  setReplayConfig((prev) => ({ ...prev, mode: value }))
                 }
               >
                 <SelectTrigger className="w-40">
@@ -491,7 +512,7 @@ export function NativeReplayWindow() {
               <Switch
                 checked={replayConfig.autoScale}
                 onCheckedChange={(checked) =>
-                  setReplayConfig(prev => ({ ...prev, autoScale: checked }))
+                  setReplayConfig((prev) => ({ ...prev, autoScale: checked }))
                 }
               />
             </div>
@@ -501,7 +522,10 @@ export function NativeReplayWindow() {
               <Switch
                 checked={replayConfig.showPageTransitions}
                 onCheckedChange={(checked) =>
-                  setReplayConfig(prev => ({ ...prev, showPageTransitions: checked }))
+                  setReplayConfig((prev) => ({
+                    ...prev,
+                    showPageTransitions: checked,
+                  }))
                 }
               />
             </div>
@@ -516,12 +540,12 @@ export function NativeReplayWindow() {
                   placeholder="Duration (ms)"
                   value={animationSettings.penStrokes.elementDuration}
                   onChange={(e) =>
-                    setAnimationSettings(prev => ({
+                    setAnimationSettings((prev) => ({
                       ...prev,
                       penStrokes: {
                         ...prev.penStrokes,
-                        elementDuration: parseInt(e.target.value) || 800
-                      }
+                        elementDuration: parseInt(e.target.value) || 800,
+                      },
                     }))
                   }
                 />
@@ -530,12 +554,12 @@ export function NativeReplayWindow() {
                   placeholder="Delay (ms)"
                   value={animationSettings.penStrokes.groupDelay}
                   onChange={(e) =>
-                    setAnimationSettings(prev => ({
+                    setAnimationSettings((prev) => ({
                       ...prev,
                       penStrokes: {
                         ...prev.penStrokes,
-                        groupDelay: parseInt(e.target.value) || 200
-                      }
+                        groupDelay: parseInt(e.target.value) || 200,
+                      },
                     }))
                   }
                 />
@@ -550,12 +574,12 @@ export function NativeReplayWindow() {
                   placeholder="Duration (ms)"
                   value={animationSettings.shapes.elementDuration}
                   onChange={(e) =>
-                    setAnimationSettings(prev => ({
+                    setAnimationSettings((prev) => ({
                       ...prev,
                       shapes: {
                         ...prev.shapes,
-                        elementDuration: parseInt(e.target.value) || 2000
-                      }
+                        elementDuration: parseInt(e.target.value) || 2000,
+                      },
                     }))
                   }
                 />
@@ -564,12 +588,12 @@ export function NativeReplayWindow() {
                   placeholder="Delay (ms)"
                   value={animationSettings.shapes.groupDelay}
                   onChange={(e) =>
-                    setAnimationSettings(prev => ({
+                    setAnimationSettings((prev) => ({
                       ...prev,
                       shapes: {
                         ...prev.shapes,
-                        groupDelay: parseInt(e.target.value) || 300
-                      }
+                        groupDelay: parseInt(e.target.value) || 300,
+                      },
                     }))
                   }
                 />
@@ -583,7 +607,10 @@ export function NativeReplayWindow() {
               <Select
                 value={replayConfig.transitionType}
                 onValueChange={(value: any) =>
-                  setReplayConfig(prev => ({ ...prev, transitionType: value }))
+                  setReplayConfig((prev) => ({
+                    ...prev,
+                    transitionType: value,
+                  }))
                 }
               >
                 <SelectTrigger className="w-32">
@@ -605,9 +632,9 @@ export function NativeReplayWindow() {
                   type="number"
                   value={replayConfig.transitionDuration}
                   onChange={(e) =>
-                    setReplayConfig(prev => ({
+                    setReplayConfig((prev) => ({
                       ...prev,
-                      transitionDuration: parseInt(e.target.value) || 1000
+                      transitionDuration: parseInt(e.target.value) || 1000,
                     }))
                   }
                   className="w-20 h-7 text-xs"

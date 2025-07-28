@@ -542,7 +542,7 @@ const patchSvgEle = (
 // Convert our DrawingElement to Excalidraw format for SVG export
 function convertToExcalidrawElement(element: DrawingElement): any {
   console.log("Converting element:", element.type, element.id);
-  
+
   const excalidrawElement: any = {
     id: element.id,
     type:
@@ -652,7 +652,7 @@ function createAppState(): any {
     zoom: { value: 1 },
     scrollX: 0,
     scrollY: 0,
-    width: 1920,  // CRITICAL FIX: Use origin box dimensions
+    width: 1920, // CRITICAL FIX: Use origin box dimensions
     height: 1080, // CRITICAL FIX: Use origin box dimensions
   };
 }
@@ -664,7 +664,7 @@ async function exportElementsToSvg(
   console.log("Exporting elements to SVG:", elements.length);
 
   // CRITICAL FIX: Normalize world coordinates to origin box space
-  const normalizedElements = elements.map(element => {
+  const normalizedElements = elements.map((element) => {
     const offsetX = 960;
     const offsetY = 540;
     const scale = 0.5;
@@ -677,19 +677,21 @@ async function exportElementsToSvg(
 
     let normalizedPoints;
     if (element.points) {
-      normalizedPoints = element.points.map(point => ({
+      normalizedPoints = element.points.map((point) => ({
         x: Math.max(0, Math.min(1920, point.x * scale + offsetX)),
-        y: Math.max(0, Math.min(1080, point.y * scale + offsetY))
+        y: Math.max(0, Math.min(1080, point.y * scale + offsetY)),
       }));
     }
 
-    console.log(`Normalized ${element.id}: (${element.x}, ${element.y}) -> (${clampedX}, ${clampedY})`);
+    console.log(
+      `Normalized ${element.id}: (${element.x}, ${element.y}) -> (${clampedX}, ${clampedY})`,
+    );
 
     return {
       ...element,
       x: clampedX,
       y: clampedY,
-      points: normalizedPoints || element.points
+      points: normalizedPoints || element.points,
     };
   });
 
@@ -915,7 +917,10 @@ export async function animateDrawingElementsWithExtendedConfig(
     // Add to container
     console.log("Adding SVG to container...");
     container.appendChild(svg);
-    console.log("SVG added to container. Container children:", container.children.length);
+    console.log(
+      "SVG added to container. Container children:",
+      container.children.length,
+    );
 
     // Animate using enhanced excalidraw-animate approach with extended config
     console.log("Starting SVG animation...");

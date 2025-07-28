@@ -11,7 +11,7 @@ import { NativeReplaySystem } from "./NativeReplaySystem";
  */
 export function createTestElements(): DrawingElement[] {
   const baseTimestamp = Date.now();
-  
+
   return [
     // Small rectangle (50x30) near center
     {
@@ -24,15 +24,15 @@ export function createTestElements(): DrawingElement[] {
       style: {
         stroke: "#ff0000",
         strokeWidth: 2,
-        fill: "transparent"
+        fill: "transparent",
       },
       layerId: "default",
-      timestamp: baseTimestamp
+      timestamp: baseTimestamp,
     },
-    
+
     // Small circle (20px radius) near center
     {
-      id: "test-ellipse-1", 
+      id: "test-ellipse-1",
       type: "ellipse",
       x: 390,
       y: 330,
@@ -41,12 +41,12 @@ export function createTestElements(): DrawingElement[] {
       style: {
         stroke: "#00ff00",
         strokeWidth: 2,
-        fill: "rgba(0, 255, 0, 0.2)"
+        fill: "rgba(0, 255, 0, 0.2)",
       },
       layerId: "default",
-      timestamp: baseTimestamp + 1000
+      timestamp: baseTimestamp + 1000,
     },
-    
+
     // Small path (drawing stroke)
     {
       id: "test-path-1",
@@ -58,16 +58,16 @@ export function createTestElements(): DrawingElement[] {
         { x: 355, y: 255 },
         { x: 360, y: 250 },
         { x: 365, y: 255 },
-        { x: 370, y: 250 }
+        { x: 370, y: 250 },
       ],
       style: {
         stroke: "#0000ff",
-        strokeWidth: 3
+        strokeWidth: 3,
       },
       layerId: "default",
-      timestamp: baseTimestamp + 2000
+      timestamp: baseTimestamp + 2000,
     },
-    
+
     // Small line
     {
       id: "test-line-1",
@@ -76,16 +76,16 @@ export function createTestElements(): DrawingElement[] {
       y: 250,
       points: [
         { x: 400, y: 250 },
-        { x: 450, y: 280 }
+        { x: 450, y: 280 },
       ],
       style: {
         stroke: "#ff00ff",
-        strokeWidth: 2
+        strokeWidth: 2,
       },
       layerId: "default",
-      timestamp: baseTimestamp + 3000
+      timestamp: baseTimestamp + 3000,
     },
-    
+
     // Text element
     {
       id: "test-text-1",
@@ -97,18 +97,21 @@ export function createTestElements(): DrawingElement[] {
         stroke: "#000000",
         strokeWidth: 1,
         fontSize: 16,
-        fontFamily: "Arial"
+        fontFamily: "Arial",
       },
       layerId: "default",
-      timestamp: baseTimestamp + 4000
-    }
+      timestamp: baseTimestamp + 4000,
+    },
   ];
 }
 
 /**
  * Test that creates a canvas and validates rendering
  */
-export function testNativeReplaySystem(): Promise<{ success: boolean; errors: string[] }> {
+export function testNativeReplaySystem(): Promise<{
+  success: boolean;
+  errors: string[];
+}> {
   return new Promise((resolve) => {
     const errors: string[] = [];
     let success = true;
@@ -118,11 +121,11 @@ export function testNativeReplaySystem(): Promise<{ success: boolean; errors: st
       const canvas = document.createElement("canvas");
       canvas.width = 800;
       canvas.height = 600;
-      
+
       // Test elements
       const testElements = createTestElements();
       console.log(`Testing with ${testElements.length} small elements`);
-      
+
       // Native replay config - auto-scale should fit content properly
       const config = {
         mode: "chronological" as const,
@@ -132,7 +135,7 @@ export function testNativeReplaySystem(): Promise<{ success: boolean; errors: st
         showPageIndicators: false,
         autoScale: true, // This should prevent zoom issues
       };
-      
+
       // Animation settings
       const animationSettings = {
         penStrokes: {
@@ -153,32 +156,42 @@ export function testNativeReplaySystem(): Promise<{ success: boolean; errors: st
           easing: "ease-out",
         },
       };
-      
+
       // Initialize system
-      const replaySystem = new NativeReplaySystem(canvas, config, animationSettings);
+      const replaySystem = new NativeReplaySystem(
+        canvas,
+        config,
+        animationSettings,
+      );
       replaySystem.loadElements(testElements);
-      
+
       // Get stats to verify setup
       const stats = replaySystem.getStats();
       console.log("Replay system stats:", stats);
-      
+
       // Validate viewport - should not be extremely zoomed
       if (stats.viewport.scale < 0.1) {
-        errors.push(`Viewport scale too small: ${stats.viewport.scale} (potential zoom out issue)`);
+        errors.push(
+          `Viewport scale too small: ${stats.viewport.scale} (potential zoom out issue)`,
+        );
         success = false;
       }
-      
+
       if (stats.viewport.scale > 10) {
-        errors.push(`Viewport scale too large: ${stats.viewport.scale} (potential zoom in issue)`);
+        errors.push(
+          `Viewport scale too large: ${stats.viewport.scale} (potential zoom in issue)`,
+        );
         success = false;
       }
-      
+
       // Validate elements are loaded
       if (stats.elements !== testElements.length) {
-        errors.push(`Element count mismatch: expected ${testElements.length}, got ${stats.elements}`);
+        errors.push(
+          `Element count mismatch: expected ${testElements.length}, got ${stats.elements}`,
+        );
         success = false;
       }
-      
+
       // Test animation start (should not throw errors)
       replaySystem.startReplay(
         (progress) => {
@@ -191,9 +204,9 @@ export function testNativeReplaySystem(): Promise<{ success: boolean; errors: st
         () => {
           console.log("Test animation completed successfully");
           resolve({ success, errors });
-        }
+        },
       );
-      
+
       // Stop after a short time to complete test
       setTimeout(() => {
         replaySystem.stop();
@@ -204,7 +217,6 @@ export function testNativeReplaySystem(): Promise<{ success: boolean; errors: st
         }
         resolve({ success, errors });
       }, 2000);
-      
     } catch (error) {
       console.error("Test failed with exception:", error);
       errors.push(`Exception during test: ${error}`);
@@ -222,60 +234,64 @@ export function createVisibilityTestElements(): DrawingElement[] {
   const canvasWidth = 800;
   const canvasHeight = 600;
   const elementSize = Math.min(canvasWidth, canvasHeight) * 0.05; // 5% of smaller dimension
-  
+
   const centerX = canvasWidth / 2;
   const centerY = canvasHeight / 2;
-  
+
   return [
     {
       id: "visibility-test-square",
       type: "rectangle",
-      x: centerX - elementSize/2,
-      y: centerY - elementSize/2,
+      x: centerX - elementSize / 2,
+      y: centerY - elementSize / 2,
       width: elementSize,
       height: elementSize,
       style: {
         stroke: "#ff0000",
         strokeWidth: 3,
-        fill: "rgba(255, 0, 0, 0.2)"
+        fill: "rgba(255, 0, 0, 0.2)",
       },
       layerId: "default",
-      timestamp: Date.now()
-    }
+      timestamp: Date.now(),
+    },
   ];
 }
 
 /**
  * Test specifically for the zoom issue - validates coordinates
  */
-export function validateCoordinateSystem(elements: DrawingElement[]): { 
-  hasCoordinateIssues: boolean; 
-  recommendations: string[] 
+export function validateCoordinateSystem(elements: DrawingElement[]): {
+  hasCoordinateIssues: boolean;
+  recommendations: string[];
 } {
   const recommendations: string[] = [];
   let hasCoordinateIssues = false;
-  
+
   // Check for extremely large or small coordinates
   for (const element of elements) {
     if (Math.abs(element.x) > 10000 || Math.abs(element.y) > 10000) {
       hasCoordinateIssues = true;
-      recommendations.push(`Element ${element.id} has extreme coordinates: (${element.x}, ${element.y})`);
+      recommendations.push(
+        `Element ${element.id} has extreme coordinates: (${element.x}, ${element.y})`,
+      );
     }
-    
+
     if (element.points) {
       for (const point of element.points) {
         if (Math.abs(point.x) > 10000 || Math.abs(point.y) > 10000) {
           hasCoordinateIssues = true;
-          recommendations.push(`Element ${element.id} has extreme point coordinates`);
+          recommendations.push(
+            `Element ${element.id} has extreme point coordinates`,
+          );
           break;
         }
       }
     }
   }
-  
+
   if (!hasCoordinateIssues) {
     recommendations.push("✅ Coordinate system looks healthy");
   }
-  
+
   return { hasCoordinateIssues, recommendations };
 }

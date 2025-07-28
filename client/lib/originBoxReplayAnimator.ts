@@ -623,7 +623,8 @@ async function animateElement(
   svg.appendChild(pathEl);
 
   // Store the original stroke style before animation
-  const originalStrokeDasharray = pathEl.getAttribute("stroke-dasharray") || "none";
+  const originalStrokeDasharray =
+    pathEl.getAttribute("stroke-dasharray") || "none";
 
   // Calculate animation duration - use element-specific duration if available (true speed mode)
   let elementDuration = settings.strokeDuration;
@@ -705,9 +706,7 @@ export function clearOriginBoxAnimationOverlay(
 
   if (!container) return;
 
-  const svg = container.querySelector(
-    ".origin-box-svg",
-  ) as SVGSVGElement;
+  const svg = container.querySelector(".origin-box-svg") as SVGSVGElement;
   if (svg) {
     svg.remove();
   }

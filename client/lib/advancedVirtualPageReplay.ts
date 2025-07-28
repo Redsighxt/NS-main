@@ -13,7 +13,14 @@ export interface VirtualPageReplayConfig {
   height: number;
   backgroundColor: string;
   mode: "chronological" | "layer";
-  transitionType: "fade" | "slide-left" | "slide-right" | "slide-up" | "slide-down" | "zoom" | "none";
+  transitionType:
+    | "fade"
+    | "slide-left"
+    | "slide-right"
+    | "slide-up"
+    | "slide-down"
+    | "zoom"
+    | "none";
   transitionDuration: number;
   showPageIndicators: boolean;
   showDebugTints: boolean;
@@ -66,7 +73,9 @@ export async function replayWithVirtualPages(
   settings: ExtendedReplaySettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
-  console.log(`🎬 Starting ${config.mode} replay with ${elements.length} elements`);
+  console.log(
+    `🎬 Starting ${config.mode} replay with ${elements.length} elements`,
+  );
   console.log(`📊 Animation settings:`, settings);
   console.log(`🔧 Config:`, config);
 
@@ -80,21 +89,36 @@ export async function replayWithVirtualPages(
 
   // Debug: Log element distribution across virtual pages
   const pageDistribution = new Map<string, number>();
-  elements.forEach(element => {
+  elements.forEach((element) => {
     const page = virtualPagesManager.findElementPage(element);
     pageDistribution.set(page.id, (pageDistribution.get(page.id) || 0) + 1);
   });
 
-  console.log(`📄 Virtual page distribution:`, Array.from(pageDistribution.entries()));
+  console.log(
+    `📄 Virtual page distribution:`,
+    Array.from(pageDistribution.entries()),
+  );
 
   // Clear and setup container
   setupReplayContainer(container, config);
 
   try {
     if (config.mode === "chronological") {
-      await executeChronologicalReplay(elements, container, config, settings, onProgress);
+      await executeChronologicalReplay(
+        elements,
+        container,
+        config,
+        settings,
+        onProgress,
+      );
     } else {
-      await executeLayerReplay(elements, container, config, settings, onProgress);
+      await executeLayerReplay(
+        elements,
+        container,
+        config,
+        settings,
+        onProgress,
+      );
     }
 
     console.log(`🎉 Virtual page replay completed successfully`);
@@ -107,12 +131,20 @@ export async function replayWithVirtualPages(
 /**
  * Setup the replay container with validation
  */
-function setupReplayContainer(container: HTMLElement, config: VirtualPageReplayConfig): void {
+function setupReplayContainer(
+  container: HTMLElement,
+  config: VirtualPageReplayConfig,
+): void {
   if (!container) {
     throw new Error("Container element is required");
   }
 
-  if (!config.width || !config.height || config.width <= 0 || config.height <= 0) {
+  if (
+    !config.width ||
+    !config.height ||
+    config.width <= 0 ||
+    config.height <= 0
+  ) {
     throw new Error("Valid width and height are required");
   }
 
@@ -141,7 +173,9 @@ function setupReplayContainer(container: HTMLElement, config: VirtualPageReplayC
   container.style.maxHeight = "100%";
   container.style.objectFit = "contain";
 
-  console.log(`📦 Container setup: ${virtualCanvasWidth}x${virtualCanvasHeight} (full origin box), bg: ${config.backgroundColor}`);
+  console.log(
+    `📦 Container setup: ${virtualCanvasWidth}x${virtualCanvasHeight} (full origin box), bg: ${config.backgroundColor}`,
+  );
   console.log(`📏 Original config requested: ${config.width}x${config.height}`);
 }
 
@@ -164,9 +198,13 @@ async function executeChronologicalReplay(
   // Log timeline for debugging
   timeline.forEach((event, index) => {
     if (event.type === "page-switch") {
-      console.log(`  ${index + 1}. Page switch to ${event.toPage?.id} at ${event.timestamp}`);
+      console.log(
+        `  ${index + 1}. Page switch to ${event.toPage?.id} at ${event.timestamp}`,
+      );
     } else {
-      console.log(`  ${index + 1}. Element ${event.element?.id} (${event.element?.type}) at ${event.timestamp}`);
+      console.log(
+        `  ${index + 1}. Element ${event.element?.id} (${event.element?.type}) at ${event.timestamp}`,
+      );
     }
   });
 
@@ -176,11 +214,13 @@ async function executeChronologicalReplay(
   let processedEvents = 0;
   let currentPage: VirtualPage | null = null;
   let elementCount = 0;
-  const totalElements = timeline.filter(e => e.type === "element").length;
+  const totalElements = timeline.filter((e) => e.type === "element").length;
 
   for (const event of timeline) {
     if (event.type === "page-switch") {
-      console.log(`📄 Page switch: ${currentPage?.id || 'start'} → ${event.toPage?.id}`);
+      console.log(
+        `📄 Page switch: ${currentPage?.id || "start"} → ${event.toPage?.id}`,
+      );
 
       // Show page transition
       if (event.toPage) {
@@ -203,9 +243,10 @@ async function executeChronologicalReplay(
           }, 2000);
         }
       }
-
     } else if (event.type === "element" && event.element) {
-      console.log(`🎨 Animating element ${event.element.id} of type ${event.element.type}`);
+      console.log(
+        `🎨 Animating element ${event.element.id} of type ${event.element.type}`,
+      );
 
       // Ensure viewport is positioned for this element's page
       const elementPage = virtualPagesManager.findElementPage(event.element);
@@ -222,7 +263,7 @@ async function executeChronologicalReplay(
       // Wait for element delay (except for last element)
       if (elementCount < totalElements) {
         const delay = getElementDelay(event.element, settings);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
@@ -259,12 +300,19 @@ async function executeLayerReplay(
   const totalElements = elements.length;
 
   for (const group of pageGroups) {
-    console.log(`📖 Animating page ${group.page.id} with ${group.elements.length} elements`);
+    console.log(
+      `📖 Animating page ${group.page.id} with ${group.elements.length} elements`,
+    );
 
     // Show page transition (except for first page)
     if (processedGroups > 0) {
       const previousGroup = pageGroups[processedGroups - 1];
-      await showPageTransition(viewport, previousGroup.page, group.page, config);
+      await showPageTransition(
+        viewport,
+        previousGroup.page,
+        group.page,
+        config,
+      );
     }
 
     // Update viewport to show this page
@@ -284,16 +332,24 @@ async function executeLayerReplay(
     }
 
     // Animate all elements in this page using existing progressive fill system
-    await animatePageElements(group.elements, viewport, settings, (elementProgress) => {
-      // Calculate overall progress including completed groups
-      const elementsInPreviousGroups = totalElementsProcessed;
-      const currentGroupProgress = (elementProgress / 100) * group.elements.length;
-      const overallProgress = ((elementsInPreviousGroups + currentGroupProgress) / totalElements) * 100;
+    await animatePageElements(
+      group.elements,
+      viewport,
+      settings,
+      (elementProgress) => {
+        // Calculate overall progress including completed groups
+        const elementsInPreviousGroups = totalElementsProcessed;
+        const currentGroupProgress =
+          (elementProgress / 100) * group.elements.length;
+        const overallProgress =
+          ((elementsInPreviousGroups + currentGroupProgress) / totalElements) *
+          100;
 
-      if (onProgress) {
-        onProgress(overallProgress);
-      }
-    });
+        if (onProgress) {
+          onProgress(overallProgress);
+        }
+      },
+    );
 
     totalElementsProcessed += group.elements.length;
     processedGroups++;
@@ -305,7 +361,7 @@ async function executeLayerReplay(
 
     // Wait a bit before next page (if not last page)
     if (processedGroups < pageGroups.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
 
@@ -315,31 +371,37 @@ async function executeLayerReplay(
 /**
  * Build chronological timeline with page switch events
  */
-function buildChronologicalTimeline(elements: DrawingElement[]): TimelineEvent[] {
+function buildChronologicalTimeline(
+  elements: DrawingElement[],
+): TimelineEvent[] {
   const timeline: TimelineEvent[] = [];
-  
+
   // Sort elements by timestamp
-  const sortedElements = [...elements].sort((a, b) => a.timestamp - b.timestamp);
-  
+  const sortedElements = [...elements].sort(
+    (a, b) => a.timestamp - b.timestamp,
+  );
+
   let currentPageId: string | null = null;
-  
+
   for (const element of sortedElements) {
     const elementPage = virtualPagesManager.findElementPage(element);
-    
+
     // Check if we need a page switch
     if (elementPage.id !== currentPageId) {
-      const fromPage = currentPageId ? virtualPagesManager.getPage(currentPageId) : null;
-      
+      const fromPage = currentPageId
+        ? virtualPagesManager.getPage(currentPageId)
+        : null;
+
       timeline.push({
         type: "page-switch",
         timestamp: element.timestamp,
         fromPage: fromPage || undefined,
         toPage: elementPage,
       });
-      
+
       currentPageId = elementPage.id;
     }
-    
+
     // Add element event
     timeline.push({
       type: "element",
@@ -347,7 +409,7 @@ function buildChronologicalTimeline(elements: DrawingElement[]): TimelineEvent[]
       element: element,
     });
   }
-  
+
   return timeline;
 }
 
@@ -356,11 +418,11 @@ function buildChronologicalTimeline(elements: DrawingElement[]): TimelineEvent[]
  */
 function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
   const pageMap = new Map<string, PageGroup>();
-  
+
   // Group elements by page
   for (const element of elements) {
     const page = virtualPagesManager.findElementPage(element);
-    
+
     if (!pageMap.has(page.id)) {
       pageMap.set(page.id, {
         page: page,
@@ -368,20 +430,25 @@ function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
         firstTimestamp: element.timestamp,
       });
     }
-    
+
     const group = pageMap.get(page.id)!;
     group.elements.push(element);
     group.firstTimestamp = Math.min(group.firstTimestamp, element.timestamp);
   }
-  
+
   // Sort groups by first element timestamp
-  return Array.from(pageMap.values()).sort((a, b) => a.firstTimestamp - b.firstTimestamp);
+  return Array.from(pageMap.values()).sort(
+    (a, b) => a.firstTimestamp - b.firstTimestamp,
+  );
 }
 
 /**
  * Create viewport manager for handling page views
  */
-function createViewportManager(container: HTMLElement, config: VirtualPageReplayConfig) {
+function createViewportManager(
+  container: HTMLElement,
+  config: VirtualPageReplayConfig,
+) {
   // Create main viewport div that represents the full 1920x1080 canvas space
   const viewport = document.createElement("div");
   viewport.className = "virtual-page-viewport";
@@ -417,24 +484,28 @@ function createViewportManager(container: HTMLElement, config: VirtualPageReplay
 /**
  * Update viewport to show specific page content with proper scaling
  */
-function updateViewportForPage(viewport: HTMLElement, page: VirtualPage, config: VirtualPageReplayConfig): void {
+function updateViewportForPage(
+  viewport: HTMLElement,
+  page: VirtualPage,
+  config: VirtualPageReplayConfig,
+): void {
   // CRITICAL FIX: For replay, we want to show the content as-is without translation
   // The SVG export already handles the coordinate system properly
 
   // Remove any previous transformations that cause positioning issues
-  viewport.style.transition = 'none';
-  viewport.style.transform = 'none';
-  viewport.style.transformOrigin = '0 0';
+  viewport.style.transition = "none";
+  viewport.style.transform = "none";
+  viewport.style.transformOrigin = "0 0";
 
   // KEEP viewport at full origin box dimensions - NEVER change these
-  viewport.style.width = '1920px';
-  viewport.style.height = '1080px';
+  viewport.style.width = "1920px";
+  viewport.style.height = "1080px";
 
   // Ensure content is visible and not clipped
-  viewport.style.overflow = 'visible';
-  viewport.style.position = 'absolute';
-  viewport.style.top = '0';
-  viewport.style.left = '0';
+  viewport.style.overflow = "visible";
+  viewport.style.position = "absolute";
+  viewport.style.top = "0";
+  viewport.style.left = "0";
 
   console.log(`🎯 Viewport set for page ${page.id} - no translation applied`);
   console.log(`📏 Viewport dimensions: 1920x1080`);
@@ -450,9 +521,11 @@ async function showPageTransition(
   config: VirtualPageReplayConfig,
 ): Promise<void> {
   if (config.transitionType === "none") return;
-  
-  console.log(`🎭 Transition: ${fromPage?.id || 'start'} → ${toPage.id} (${config.transitionType})`);
-  
+
+  console.log(
+    `🎭 Transition: ${fromPage?.id || "start"} → ${toPage.id} (${config.transitionType})`,
+  );
+
   // Create transition overlay
   const transition = document.createElement("div");
   transition.className = "page-transition";
@@ -463,13 +536,13 @@ async function showPageTransition(
   transition.style.height = "100%";
   transition.style.zIndex = "100";
   transition.style.pointerEvents = "none";
-  
+
   // Page indicator
   if (config.showPageIndicators) {
     const indicator = createPageIndicator(toPage);
     transition.appendChild(indicator);
   }
-  
+
   // Transition effect
   let transitionEffect: string;
   switch (config.transitionType) {
@@ -505,12 +578,16 @@ async function showPageTransition(
     default:
       return;
   }
-  
+
   viewport.appendChild(transition);
-  
+
   // Animate transition
-  await animateTransition(transition, transitionEffect, config.transitionDuration);
-  
+  await animateTransition(
+    transition,
+    transitionEffect,
+    config.transitionDuration,
+  );
+
   // Remove transition
   if (transition.parentNode) {
     transition.parentNode.removeChild(transition);
@@ -534,20 +611,24 @@ function createPageIndicator(page: VirtualPage): HTMLElement {
   indicator.style.fontWeight = "600";
   indicator.style.fontFamily = "system-ui, sans-serif";
   indicator.style.zIndex = "101";
-  
-  const pageInfo = page.isOrigin 
+
+  const pageInfo = page.isOrigin
     ? "📍 Origin Page (0, 0)"
     : `📄 Page (${page.gridPosition.row}, ${page.gridPosition.col})`;
-  
+
   indicator.textContent = pageInfo;
-  
+
   return indicator;
 }
 
 /**
  * Animate transition effect with better timing and easing
  */
-async function animateTransition(element: HTMLElement, effect: string, duration: number): Promise<void> {
+async function animateTransition(
+  element: HTMLElement,
+  effect: string,
+  duration: number,
+): Promise<void> {
   return new Promise((resolve) => {
     const halfDuration = duration / 2;
     element.style.transition = `${effect} ${halfDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
@@ -603,7 +684,9 @@ async function animateElementInViewport(
   const duration = getElementDuration(element, settings);
   const easing = getElementEasing(element, settings);
 
-  console.log(`🎨 Animating ${element.type} element ${element.id} with duration ${duration}ms, easing ${easing}`);
+  console.log(
+    `🎨 Animating ${element.type} element ${element.id} with duration ${duration}ms, easing ${easing}`,
+  );
   console.log(`📍 Element coordinates: (${element.x}, ${element.y})`);
 
   try {
@@ -631,7 +714,9 @@ async function animatePageElements(
   onProgress?: (progress: number) => void,
 ): Promise<void> {
   // Sort elements by timestamp within the page
-  const sortedElements = [...elements].sort((a, b) => a.timestamp - b.timestamp);
+  const sortedElements = [...elements].sort(
+    (a, b) => a.timestamp - b.timestamp,
+  );
 
   console.log(`📄 Animating page with ${sortedElements.length} elements`);
 
@@ -651,7 +736,7 @@ async function animatePageElements(
     // Wait for delay between elements (except last element)
     if (i < sortedElements.length - 1) {
       const delay = getElementDelay(element, settings);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 }
@@ -659,11 +744,17 @@ async function animatePageElements(
 /**
  * Get element-specific duration based on type and settings
  */
-function getElementDuration(element: DrawingElement, settings: ExtendedReplaySettings): number {
+function getElementDuration(
+  element: DrawingElement,
+  settings: ExtendedReplaySettings,
+): number {
   switch (element.type) {
     case "path":
       if (settings.penStrokes.trueSpeed) {
-        return calculateTrueSpeedDuration(element, settings.penStrokes.trueSpeedRate);
+        return calculateTrueSpeedDuration(
+          element,
+          settings.penStrokes.trueSpeedRate,
+        );
       }
       return settings.penStrokes.elementDuration;
     case "highlighter":
@@ -684,7 +775,10 @@ function getElementDuration(element: DrawingElement, settings: ExtendedReplaySet
 /**
  * Get element-specific delay based on type and settings
  */
-function getElementDelay(element: DrawingElement, settings: ExtendedReplaySettings): number {
+function getElementDelay(
+  element: DrawingElement,
+  settings: ExtendedReplaySettings,
+): number {
   switch (element.type) {
     case "path":
     case "highlighter":
@@ -705,7 +799,10 @@ function getElementDelay(element: DrawingElement, settings: ExtendedReplaySettin
 /**
  * Get element-specific easing based on type and settings
  */
-function getElementEasing(element: DrawingElement, settings: ExtendedReplaySettings): string {
+function getElementEasing(
+  element: DrawingElement,
+  settings: ExtendedReplaySettings,
+): string {
   switch (element.type) {
     case "path":
     case "highlighter":
@@ -726,7 +823,10 @@ function getElementEasing(element: DrawingElement, settings: ExtendedReplaySetti
 /**
  * Calculate true speed duration for path elements
  */
-function calculateTrueSpeedDuration(element: DrawingElement, speedRate: number): number {
+function calculateTrueSpeedDuration(
+  element: DrawingElement,
+  speedRate: number,
+): number {
   if (!element.points || element.points.length < 2) {
     return 1000; // Default duration
   }
@@ -761,14 +861,14 @@ export function clearVirtualPageReplay(container: HTMLElement): void {
   // Clear any remaining transition elements
   const transitions = container.querySelectorAll(".page-transition");
   if (transitions.length > 0) {
-    transitions.forEach(t => t.remove());
+    transitions.forEach((t) => t.remove());
     console.log(`🧹 ${transitions.length} transitions cleared`);
   }
 
   // Clear any page indicators
   const indicators = container.querySelectorAll(".page-indicator");
   if (indicators.length > 0) {
-    indicators.forEach(i => i.remove());
+    indicators.forEach((i) => i.remove());
     console.log(`🧹 ${indicators.length} indicators cleared`);
   }
 
@@ -783,7 +883,8 @@ export function validateReplayConfig(config: VirtualPageReplayConfig): boolean {
 
   if (!config.width || config.width <= 0) errors.push("Invalid width");
   if (!config.height || config.height <= 0) errors.push("Invalid height");
-  if (!config.mode || !["chronological", "layer"].includes(config.mode)) errors.push("Invalid mode");
+  if (!config.mode || !["chronological", "layer"].includes(config.mode))
+    errors.push("Invalid mode");
   if (!config.transitionType) errors.push("Missing transition type");
   if (config.transitionDuration < 0) errors.push("Invalid transition duration");
 
@@ -809,7 +910,7 @@ export function getVirtualPageSystemInfo(): object {
     pagesWithElements: stats.pagesWithElements,
     totalElements: stats.totalElements,
     originPageElements: stats.originPageElements,
-    pages: allPages.map(page => ({
+    pages: allPages.map((page) => ({
       id: page.id,
       isOrigin: page.isOrigin,
       position: { x: page.x, y: page.y },

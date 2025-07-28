@@ -29,25 +29,31 @@ export function ReplayStudio() {
             📄 Legacy SVG System
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="native" className="mt-4 space-y-0">
           <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-3 rounded-lg border mb-4">
             <div className="text-sm">
-              <strong className="text-green-700 dark:text-green-300">✨ New Native System</strong>
+              <strong className="text-green-700 dark:text-green-300">
+                ✨ New Native System
+              </strong>
               <div className="text-gray-600 dark:text-gray-300 text-xs mt-1">
-                Direct canvas rendering • Zero zoom issues • Perfect for small shapes
+                Direct canvas rendering • Zero zoom issues • Perfect for small
+                shapes
               </div>
             </div>
           </div>
           <NativeReplayWindow />
         </TabsContent>
-        
+
         <TabsContent value="legacy" className="mt-4 space-y-0">
           <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border mb-4">
             <div className="text-sm">
-              <strong className="text-orange-700 dark:text-orange-300">⚠️ Legacy System</strong>
+              <strong className="text-orange-700 dark:text-orange-300">
+                ⚠️ Legacy System
+              </strong>
               <div className="text-gray-600 dark:text-gray-300 text-xs mt-1">
-                SVG-based • May have zoom issues • Being replaced by Native system
+                SVG-based • May have zoom issues • Being replaced by Native
+                system
               </div>
             </div>
           </div>

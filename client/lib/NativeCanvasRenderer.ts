@@ -29,7 +29,10 @@ export class NativeCanvasRenderer {
   private config: RenderConfig;
   private animationState: AnimationState;
 
-  constructor(canvas: HTMLCanvasElement, viewTransform: { x: number; y: number; scale: number }) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    viewTransform: { x: number; y: number; scale: number },
+  ) {
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       throw new Error("Could not get canvas 2D context");
@@ -38,17 +41,19 @@ export class NativeCanvasRenderer {
     this.config = {
       canvas,
       ctx,
-      viewTransform: { ...viewTransform }
+      viewTransform: { ...viewTransform },
     };
 
     this.animationState = {
       progress: 0,
       elementProgress: new Map(),
       isPlaying: false,
-      currentTimestamp: 0
+      currentTimestamp: 0,
     };
 
-    console.log(`NativeCanvasRenderer initialized: ${canvas.width}x${canvas.height}`);
+    console.log(
+      `NativeCanvasRenderer initialized: ${canvas.width}x${canvas.height}`,
+    );
   }
 
   /**
@@ -73,8 +78,12 @@ export class NativeCanvasRenderer {
   private applyViewTransform(): void {
     const { ctx, viewTransform } = this.config;
     ctx.setTransform(
-      viewTransform.scale, 0, 0, viewTransform.scale,
-      viewTransform.x, viewTransform.y
+      viewTransform.scale,
+      0,
+      0,
+      viewTransform.scale,
+      viewTransform.x,
+      viewTransform.y,
     );
   }
 
@@ -138,7 +147,7 @@ export class NativeCanvasRenderer {
    */
   private renderPath(element: DrawingElement, progress: number): void {
     const { ctx } = this.config;
-    
+
     if (!element.points || element.points.length === 0) return;
 
     ctx.beginPath();
@@ -169,15 +178,15 @@ export class NativeCanvasRenderer {
    */
   private renderHighlighter(element: DrawingElement, progress: number): void {
     const { ctx } = this.config;
-    
+
     if (!element.points || element.points.length === 0) return;
 
     ctx.save();
     ctx.globalAlpha = element.opacity || 0.3;
-    
+
     // Use the same rendering as path but with different opacity
     this.renderPath(element, progress);
-    
+
     ctx.restore();
   }
 
@@ -186,7 +195,7 @@ export class NativeCanvasRenderer {
    */
   private renderRectangle(element: DrawingElement, progress: number): void {
     const { ctx } = this.config;
-    
+
     const x = element.x;
     const y = element.y;
     const width = element.width || 100;
@@ -197,15 +206,21 @@ export class NativeCanvasRenderer {
       // Draw boundary
       ctx.strokeStyle = element.style.stroke;
       ctx.lineWidth = element.style.strokeWidth;
-      
+
       if (progress <= 0.75) {
         // Animate boundary drawing
         const boundaryProgress = progress / 0.75;
-        this.drawPartialRectangleBoundary(x, y, width, height, boundaryProgress);
+        this.drawPartialRectangleBoundary(
+          x,
+          y,
+          width,
+          height,
+          boundaryProgress,
+        );
       } else {
         // Full boundary
         ctx.strokeRect(x, y, width, height);
-        
+
         // Animate fill
         if (element.style.fill && element.style.fill !== "transparent") {
           const fillProgress = (progress - 0.75) / 0.25;
@@ -222,15 +237,21 @@ export class NativeCanvasRenderer {
   /**
    * Draw partial rectangle boundary for animation
    */
-  private drawPartialRectangleBoundary(x: number, y: number, width: number, height: number, progress: number): void {
+  private drawPartialRectangleBoundary(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    progress: number,
+  ): void {
     const { ctx } = this.config;
-    
+
     ctx.beginPath();
-    
+
     const perimeter = 2 * (width + height);
     const drawLength = perimeter * progress;
     let currentLength = 0;
-    
+
     // Start from top-left, go clockwise
     if (drawLength > currentLength) {
       // Top edge
@@ -239,7 +260,7 @@ export class NativeCanvasRenderer {
       ctx.lineTo(x + topLength, y);
       currentLength += topLength;
     }
-    
+
     if (drawLength > currentLength) {
       // Right edge
       const rightLength = Math.min(height, drawLength - currentLength);
@@ -247,7 +268,7 @@ export class NativeCanvasRenderer {
       ctx.lineTo(x + width, y + rightLength);
       currentLength += rightLength;
     }
-    
+
     if (drawLength > currentLength) {
       // Bottom edge
       const bottomLength = Math.min(width, drawLength - currentLength);
@@ -255,14 +276,14 @@ export class NativeCanvasRenderer {
       ctx.lineTo(x + width - bottomLength, y + height);
       currentLength += bottomLength;
     }
-    
+
     if (drawLength > currentLength) {
       // Left edge
       const leftLength = Math.min(height, drawLength - currentLength);
       if (currentLength === 2 * width + height) ctx.moveTo(x, y + height);
       ctx.lineTo(x, y + height - leftLength);
     }
-    
+
     ctx.stroke();
   }
 
@@ -271,7 +292,7 @@ export class NativeCanvasRenderer {
    */
   private renderEllipse(element: DrawingElement, progress: number): void {
     const { ctx } = this.config;
-    
+
     const centerX = element.x + (element.width || 100) / 2;
     const centerY = element.y + (element.height || 100) / 2;
     const radiusX = (element.width || 100) / 2;
@@ -284,14 +305,22 @@ export class NativeCanvasRenderer {
       // Animate boundary
       const boundaryProgress = progress / 0.75;
       ctx.beginPath();
-      ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI * boundaryProgress);
+      ctx.ellipse(
+        centerX,
+        centerY,
+        radiusX,
+        radiusY,
+        0,
+        0,
+        2 * Math.PI * boundaryProgress,
+      );
       ctx.stroke();
     } else {
       // Full boundary
       ctx.beginPath();
       ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
       ctx.stroke();
-      
+
       // Animate fill
       if (element.style.fill && element.style.fill !== "transparent") {
         const fillProgress = (progress - 0.75) / 0.25;
@@ -309,7 +338,7 @@ export class NativeCanvasRenderer {
    */
   private renderLine(element: DrawingElement, progress: number): void {
     const { ctx } = this.config;
-    
+
     if (!element.points || element.points.length < 2) return;
 
     ctx.strokeStyle = element.style.stroke;
@@ -318,7 +347,7 @@ export class NativeCanvasRenderer {
 
     const startPoint = element.points[0];
     const endPoint = element.points[1];
-    
+
     const currentEndX = startPoint.x + (endPoint.x - startPoint.x) * progress;
     const currentEndY = startPoint.y + (endPoint.y - startPoint.y) * progress;
 
@@ -334,7 +363,7 @@ export class NativeCanvasRenderer {
   private renderArrow(element: DrawingElement, progress: number): void {
     // First render the line
     this.renderLine(element, progress);
-    
+
     // Add arrowhead when line is mostly complete
     if (progress > 0.8 && element.points && element.points.length >= 2) {
       this.drawArrowhead(element.points[0], element.points[1], progress);
@@ -344,32 +373,36 @@ export class NativeCanvasRenderer {
   /**
    * Draw arrowhead
    */
-  private drawArrowhead(start: {x: number, y: number}, end: {x: number, y: number}, progress: number): void {
+  private drawArrowhead(
+    start: { x: number; y: number },
+    end: { x: number; y: number },
+    progress: number,
+  ): void {
     const { ctx } = this.config;
-    
+
     const angle = Math.atan2(end.y - start.y, end.x - start.x);
     const headLength = 15;
     const headAngle = Math.PI / 6;
-    
+
     const arrowProgress = (progress - 0.8) / 0.2; // Arrowhead appears in last 20%
-    
+
     if (arrowProgress > 0) {
       ctx.save();
       ctx.globalAlpha = arrowProgress;
-      
+
       ctx.beginPath();
       ctx.moveTo(end.x, end.y);
       ctx.lineTo(
         end.x - headLength * Math.cos(angle - headAngle),
-        end.y - headLength * Math.sin(angle - headAngle)
+        end.y - headLength * Math.sin(angle - headAngle),
       );
       ctx.moveTo(end.x, end.y);
       ctx.lineTo(
         end.x - headLength * Math.cos(angle + headAngle),
-        end.y - headLength * Math.sin(angle + headAngle)
+        end.y - headLength * Math.sin(angle + headAngle),
       );
       ctx.stroke();
-      
+
       ctx.restore();
     }
   }
@@ -379,13 +412,13 @@ export class NativeCanvasRenderer {
    */
   private renderText(element: DrawingElement, progress: number): void {
     const { ctx } = this.config;
-    
+
     if (!element.text) return;
 
     ctx.save();
     ctx.globalAlpha = progress;
     ctx.fillStyle = element.style.stroke;
-    ctx.font = `${element.style.fontSize || 16}px ${element.style.fontFamily || 'Arial'}`;
+    ctx.font = `${element.style.fontSize || 16}px ${element.style.fontFamily || "Arial"}`;
     ctx.fillText(element.text, element.x, element.y);
     ctx.restore();
   }
@@ -395,7 +428,7 @@ export class NativeCanvasRenderer {
    */
   renderElements(elements: DrawingElement[]): void {
     this.clear();
-    
+
     for (const element of elements) {
       const progress = this.animationState.elementProgress.get(element.id) || 0;
       this.renderElement(element, progress);
@@ -405,7 +438,10 @@ export class NativeCanvasRenderer {
   /**
    * Update animation state
    */
-  updateAnimation(elementProgress: Map<string, number>, globalProgress: number): void {
+  updateAnimation(
+    elementProgress: Map<string, number>,
+    globalProgress: number,
+  ): void {
     this.animationState.elementProgress = new Map(elementProgress);
     this.animationState.progress = globalProgress;
     this.animationState.currentTimestamp = Date.now();

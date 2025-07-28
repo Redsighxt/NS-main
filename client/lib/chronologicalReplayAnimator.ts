@@ -231,7 +231,10 @@ async function executeChronologicalTimeline(
 /**
  * Create SVG overlay for chronological animations
  */
-function createChronologicalSVG(container: HTMLElement, showDebugTints: boolean = false): SVGSVGElement {
+function createChronologicalSVG(
+  container: HTMLElement,
+  showDebugTints: boolean = false,
+): SVGSVGElement {
   // Remove existing SVG from container
   const existingSvg = container.querySelector(".chronological-svg");
   if (existingSvg) existingSvg.remove();
@@ -487,7 +490,8 @@ async function animateChronologicalElement(
   svg.appendChild(pathEl);
 
   // Store the original stroke style before animation
-  const originalStrokeDasharray = pathEl.getAttribute("stroke-dasharray") || "none";
+  const originalStrokeDasharray =
+    pathEl.getAttribute("stroke-dasharray") || "none";
 
   // Calculate animation duration - use element-specific duration if available (true speed mode)
   let elementDuration = settings.strokeDuration;
@@ -569,9 +573,7 @@ export function clearChronologicalAnimationOverlay(
 
   if (!container) return;
 
-  const svg = container.querySelector(
-    ".chronological-svg",
-  ) as SVGSVGElement;
+  const svg = container.querySelector(".chronological-svg") as SVGSVGElement;
   if (svg) {
     svg.remove();
   }
