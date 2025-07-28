@@ -493,39 +493,49 @@ function createPageIndicator(page: VirtualPage): HTMLElement {
 }
 
 /**
- * Animate transition effect
+ * Animate transition effect with better timing and easing
  */
 async function animateTransition(element: HTMLElement, effect: string, duration: number): Promise<void> {
   return new Promise((resolve) => {
-    element.style.transition = `${effect} ${duration}ms ease-in-out`;
-    
+    const halfDuration = duration / 2;
+    element.style.transition = `${effect} ${halfDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+
     // Trigger animation
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       switch (effect) {
         case "opacity":
           element.style.opacity = "1";
           setTimeout(() => {
+            element.style.transition = `${effect} ${halfDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
             element.style.opacity = "0";
-          }, duration / 2);
+          }, halfDuration);
           break;
+
         case "transform":
+          // Animate to center position first
           element.style.transform = "translate(0, 0) scale(1)";
+
           setTimeout(() => {
-            if (element.style.transform.includes("translateX")) {
-              element.style.transform = element.style.transform.includes("100%") 
-                ? "translateX(-100%)" : "translateX(100%)";
-            } else if (element.style.transform.includes("translateY")) {
-              element.style.transform = element.style.transform.includes("100%")
-                ? "translateY(-100%)" : "translateY(100%)";
-            } else if (element.style.transform.includes("scale")) {
+            element.style.transition = `${effect} ${halfDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+
+            // Then animate out
+            if (element.style.transform.includes("translateX(100%)")) {
+              element.style.transform = "translateX(-100%)";
+            } else if (element.style.transform.includes("translateX(-100%)")) {
+              element.style.transform = "translateX(100%)";
+            } else if (element.style.transform.includes("translateY(100%)")) {
+              element.style.transform = "translateY(-100%)";
+            } else if (element.style.transform.includes("translateY(-100%)")) {
+              element.style.transform = "translateY(100%)";
+            } else if (element.style.transform.includes("scale(0)")) {
               element.style.transform = "scale(0)";
             }
-          }, duration / 2);
+          }, halfDuration);
           break;
       }
-      
+
       setTimeout(resolve, duration);
-    }, 10);
+    });
   });
 }
 
