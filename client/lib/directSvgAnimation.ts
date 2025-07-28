@@ -550,7 +550,7 @@ function convertToExcalidrawElement(element: DrawingElement): any {
         ? "freedraw"
         : element.type,
     x: element.x,
-    y: normalizedCoords.y,
+    y: element.y,
     width: element.width || 100,
     height: element.height || 100,
     angle: 0,
