@@ -23,7 +23,7 @@ export function useNotifications() {
       description: message,
       variant: "default",
     });
-  };@@@@@@@@
+  };
 
   return {
     showSuccess,
