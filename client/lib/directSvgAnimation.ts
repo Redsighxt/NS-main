@@ -541,7 +541,7 @@ const patchSvgEle = (
 
 // Convert our DrawingElement to Excalidraw format for SVG export
 function convertToExcalidrawElement(element: DrawingElement): any {
-  console.log("Converting element:\", element.type, element.id);\n  console.log(\"Original world coordinates:\", element.x, element.y);\n  \n  // CRITICAL FIX: Transform world coordinates to origin box (0,0 to 1920,1080) space\n  const normalizedCoords = normalizeToOriginBoxSpace(element);\n  console.log(\"Normalized coordinates:", normalizedCoords.x, normalizedCoords.y);
+  console.log("Converting element:", element.type, element.id);
   
   const excalidrawElement: any = {
     id: element.id,
