@@ -67,7 +67,9 @@ export async function replayWithVirtualPages(
   onProgress?: (progress: number) => void,
 ): Promise<void> {
   console.log(`🎬 Starting ${config.mode} replay with ${elements.length} elements`);
-  
+  console.log(`📊 Animation settings:`, settings);
+  console.log(`🔧 Config:`, config);
+
   if (!container) {
     throw new Error("No container provided for virtual page replay");
   }
@@ -75,6 +77,15 @@ export async function replayWithVirtualPages(
   if (elements.length === 0) {
     throw new Error("No elements to animate");
   }
+
+  // Debug: Log element distribution across virtual pages
+  const pageDistribution = new Map<string, number>();
+  elements.forEach(element => {
+    const page = virtualPagesManager.findElementPage(element);
+    pageDistribution.set(page.id, (pageDistribution.get(page.id) || 0) + 1);
+  });
+
+  console.log(`📄 Virtual page distribution:`, Array.from(pageDistribution.entries()));
 
   // Clear and setup container
   setupReplayContainer(container, config);
@@ -85,8 +96,10 @@ export async function replayWithVirtualPages(
     } else {
       await executeLayerReplay(elements, container, config, settings, onProgress);
     }
+
+    console.log(`🎉 Virtual page replay completed successfully`);
   } catch (error) {
-    console.error("Virtual page replay error:", error);
+    console.error("❌ Virtual page replay error:", error);
     throw error;
   }
 }
