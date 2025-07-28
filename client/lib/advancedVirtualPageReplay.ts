@@ -131,8 +131,10 @@ function setupReplayContainer(container: HTMLElement, config: VirtualPageReplayC
   container.style.position = "relative";
   container.style.overflow = "hidden";
 
-  // Remove debug border that might interfere with content
+  // Remove all borders and debug elements that could cause blue lines
   container.style.border = "none";
+  container.style.outline = "none";
+  container.style.boxShadow = "none";
 
   // Ensure the container fills its parent properly
   container.style.maxWidth = "100%";
