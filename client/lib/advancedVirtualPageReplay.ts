@@ -548,14 +548,25 @@ async function animateElementInViewport(
   viewport: HTMLElement,
   settings: ExtendedReplaySettings,
 ): Promise<void> {
-  // Use existing directSvgAnimation system for progressive fills
+  // Get element-specific settings
   const duration = getElementDuration(element, settings);
-  
-  await animateDrawingElements([element], viewport, {
-    duration: duration,
-    delay: 0, // No delay for single element
-    easing: getElementEasing(element, settings),
-  });
+  const easing = getElementEasing(element, settings);
+
+  console.log(`🎨 Animating ${element.type} element ${element.id} with duration ${duration}ms, easing ${easing}`);
+
+  try {
+    // Use existing directSvgAnimation system for progressive fills
+    await animateDrawingElements([element], viewport, {
+      duration: duration,
+      delay: 0, // No delay for single element
+      easing: easing,
+    });
+
+    console.log(`✅ Element ${element.id} animation completed`);
+  } catch (error) {
+    console.error(`❌ Error animating element ${element.id}:`, error);
+    // Continue with animation even if one element fails
+  }
 }
 
 /**
