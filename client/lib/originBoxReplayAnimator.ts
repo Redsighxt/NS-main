@@ -36,6 +36,7 @@ export async function replayOriginBoxMode(
   config: OriginBoxReplayConfig,
   settings: AnimationSettings,
   onProgress?: (progress: number) => void,
+  showDebugTints: boolean = false,
 ): Promise<void> {
   if (!element) {
     const error = "No element provided for origin box replay";
@@ -100,7 +101,7 @@ export async function replayOriginBoxMode(
   }
 
   // Create SVG overlay for animations
-  let svg = createAnimationSVG(container, originPage);
+  let svg = createAnimationSVG(container, originPage, showDebugTints);
 
   // Group elements by page based on replay mode
   const pageGroups = groupElementsByMode(elements, config);
@@ -328,6 +329,7 @@ async function executePageTransitionMode(
 function createAnimationSVG(
   container: HTMLElement,
   originPage: VirtualPage,
+  showDebugTints: boolean = false,
 ): SVGSVGElement {
   // Remove existing SVG from container
   const existingSvg = container.querySelector(".origin-box-svg");
@@ -344,9 +346,8 @@ function createAnimationSVG(
   svg.style.zIndex = "20"; // Higher z-index to ensure visibility
   svg.style.overflow = "visible";
 
-  // Optional debug tint based on global setting
-  const showDebugTint = (window as any).setOriginBoxDebugTint;
-  if (showDebugTint) {
+  // Optional debug tint based on settings
+  if (showDebugTints) {
     svg.style.backgroundColor = "rgba(0, 255, 0, 0.1)";
     console.log("Created origin box SVG overlay with debug tint");
   } else {
