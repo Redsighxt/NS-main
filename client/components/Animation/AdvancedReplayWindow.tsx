@@ -709,19 +709,22 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas);
         console.log("Extended config:", extendedConfig);
         
-        // Use proper origin box replay system with page transitions
-        await replayOriginBoxMode(
+        // Use enhanced directSvgAnimation system for proper progressive fills
+        await animateElementsDirectly(
           elementsToReplay,
           replayCanvas,
-          originBoxConfig,
-          modifiedSettings,
-          (progress) => {
-            console.log("Layer replay progress:", progress);
-            if (progressBar) {
-              progressBar.style.width = `${progress}%`;
-            }
+          {
+            extendedConfig: extendedConfig,
+            onProgress: (progress) => {
+              console.log("Layer replay progress:", progress);
+              if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+              }
+            },
+            onComplete: () => {
+              console.log("Layer replay animation completed");
+            },
           },
-          replaySettings.showDebugTints,
         );
       } catch (error) {
         console.error("Replay window error:", error);
@@ -872,7 +875,7 @@ export function AdvancedReplayWindow() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>�� ${width}��${height} Chronological Mode - Window 2</title>
+          <title>⏰ ${width}��${height} Chronological Mode - Window 2</title>
           <style>
             * { box-sizing: border-box; }
             body {
@@ -1139,19 +1142,22 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas2);
         console.log("Extended config:", extendedConfig);
         
-        // Use proper chronological replay system with page transitions
-        await replayChronologicalMode(
+        // Use enhanced directSvgAnimation system for proper progressive fills
+        await animateElementsDirectly(
           elementsToReplay,
           replayCanvas2,
-          chronologicalConfig,
-          modifiedSettings2,
-          (progress) => {
-            console.log("Chronological progress:", progress);
-            if (progressBar2) {
-              progressBar2.style.width = `${progress}%`;
-            }
+          {
+            extendedConfig: extendedConfig,
+            onProgress: (progress) => {
+              console.log("Chronological progress:", progress);
+              if (progressBar2) {
+                progressBar2.style.width = `${progress}%`;
+              }
+            },
+            onComplete: () => {
+              console.log("Chronological animation completed");
+            },
           },
-          replaySettings.showDebugTints,
         );
       } catch (error) {
         console.error("Replay window 2 error:", error);
