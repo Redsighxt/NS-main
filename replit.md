@@ -11,6 +11,7 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
+
 - **Framework**: React 18 with TypeScript for enterprise-grade development
 - **Build Tool**: Vite for lightning-fast development and optimized production builds
 - **UI Framework**: Shadcn/UI components with Radix UI primitives for accessibility
@@ -20,12 +21,14 @@ Preferred communication style: Simple, everyday language.
 - **Animation Engine**: Custom SVG-based animation system with 60fps performance
 
 ### Backend Architecture
+
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript for full-stack type safety and reliability
 - **API Design**: RESTful API with comprehensive error handling
 - **Integration**: Vite dev server middleware for unified development experience
 
 ### Canvas System Architecture
+
 - **Rendering Engine**: High-performance HTML5 Canvas with WebGL acceleration
 - **Drawing Engine**: Advanced stroke recording with 120Hz precision capture
 - **Coordinate System**: Sophisticated infinite canvas with ViewTransform compatibility
@@ -35,6 +38,7 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### Core Drawing System
+
 - **Infinite Canvas**: Unlimited drawing space with virtual page auto-creation
 - **Origin Box System**: Professional 1920×1080 reference frame with visual overlay
 - **Advanced Tool System**: Multiple drawing tools (pen, pencil, brush, highlighter, shapes)
@@ -43,6 +47,7 @@ Preferred communication style: Simple, everyday language.
 - **Camera System**: Smooth panning and zooming with path animation
 
 ### Revolutionary Animation System
+
 - **Chronological Animation**: World-first timeline that respects drawing sequence and layer switches
 - **Page-by-Page Mode**: Professional presentation-style layer-by-layer reveals
 - **Infinite Panning Mode**: Smooth camera transitions between virtual pages during playback
@@ -50,6 +55,7 @@ Preferred communication style: Simple, everyday language.
 - **HD Replay Studio**: 1920×1080 professional replay window with multiple scaling modes
 
 ### Professional UI Components
+
 - **Adaptive Interface**: Seamlessly switches between Page Mode and Infinite Canvas
 - **Floating Panel System**: Dockable panels with persistent state management
 - **Tool Panels**: Context-aware tool selection with pressure sensitivity support
@@ -58,6 +64,7 @@ Preferred communication style: Simple, everyday language.
 - **Export System**: PNG export with foundation for video export (MP4, WebM, GIF)
 
 ### Advanced Features
+
 - **Auto-Recording**: Automatic stroke and layer switch timeline generation
 - **Layer Switch Tracking**: Intelligent detection of layer transitions during drawing
 - **Visual Feedback**: Real-time indicators, statistics, and progress tracking
@@ -68,6 +75,7 @@ Preferred communication style: Simple, everyday language.
 ## Data Flow
 
 ### Drawing Flow
+
 1. User selects tools from adaptive tool panels
 2. Infinite canvas captures high-frequency input (120Hz) with coordinate transformation
 3. Stroke engine processes and renders with layer assignment and virtual page detection
@@ -75,6 +83,7 @@ Preferred communication style: Simple, everyday language.
 5. Virtual pages auto-created when drawing extends beyond 1920×1080 boundaries
 
 ### Animation Flow
+
 1. User configures animation mode (Chronological/Page-by-Page/Infinite Panning)
 2. Timeline merges drawing strokes with layer switch events
 3. Advanced animation engine processes based on selected mode
@@ -82,6 +91,7 @@ Preferred communication style: Simple, everyday language.
 5. Real-time progress tracking with visual indicators and statistics
 
 ### Virtual Pages Flow
+
 1. Drawing bounds detection triggers virtual page creation
 2. Elements automatically assigned to appropriate 1920×1080 page grid
 3. Camera system tracks page transitions for smooth animation panning
@@ -91,6 +101,7 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Core Dependencies
+
 - **@excalidraw/excalidraw**: Advanced drawing capabilities and shape library
 - **@excalidraw/utils**: Utility functions for drawing operations
 - **excalidraw-animate**: Animation export foundation
@@ -98,18 +109,21 @@ Preferred communication style: Simple, everyday language.
 - **framer-motion**: Smooth UI animations and transitions
 
 ### UI Dependencies
-- **@radix-ui/react-***: Accessible UI component primitives
+
+- **@radix-ui/react-\***: Accessible UI component primitives
 - **lucide-react**: Professional icon library
 - **class-variance-authority**: Type-safe component variants
 - **tailwind-merge**: Intelligent Tailwind class merging
 
 ### Animation Dependencies
+
 - **Custom SVG Engine**: Advanced stroke-dasharray animation system
 - **Canvas API**: Native browser drawing with hardware acceleration
 - **RequestAnimationFrame**: Smooth 60fps animation rendering
 - **ViewTransform**: Infinite canvas coordinate system integration
 
 ### Development Dependencies
+
 - **Vite**: Ultra-fast build tool with HMR
 - **TypeScript**: Enterprise-grade type safety
 - **Tailwind CSS**: Utility-first styling with custom design system
@@ -118,18 +132,21 @@ Preferred communication style: Simple, everyday language.
 ## Deployment Strategy
 
 ### Development Environment
+
 - **Hot Module Replacement**: Instant updates with Vite HMR
 - **TypeScript Checking**: Continuous type validation
 - **Express Integration**: Unified development server on port 8080
 - **Replit Optimization**: Perfect integration with Replit development environment
 
 ### Production Build
+
 - **Frontend**: Optimized static assets with code splitting
 - **Backend**: ESBuild server compilation
 - **Performance**: Chunked loading with vendor splitting
 - **Assets**: Efficient static file serving
 
 ### Performance Considerations
+
 - **Canvas Optimization**: High DPI support with pixel ratio scaling
 - **Memory Management**: Efficient virtual page and drawing data structures
 - **Animation Performance**: Hardware-accelerated 60fps rendering
@@ -138,12 +155,14 @@ Preferred communication style: Simple, everyday language.
 ## Unique Innovations
 
 ### World-First Features
+
 1. **Chronological Layer Animation**: Only drawing app that records and replays exact layer switching timeline
 2. **Virtual Pages with Camera Panning**: Revolutionary infinite canvas animation with smooth page transitions
 3. **Tri-Modal Animation System**: Seamless switching between three distinct animation paradigms
 4. **Professional HD Studio**: Broadcast-quality 1920×1080 animation recording and export
 
 ### Technical Breakthroughs
+
 1. **Timeline Event Merging**: Advanced system merging drawing strokes with layer switch events
 2. **Smart Page Detection**: Automatic virtual page creation based on drawing boundaries
 3. **Adaptive Scaling**: Professional video-style scaling modes for replay windows
@@ -152,18 +171,21 @@ Preferred communication style: Simple, everyday language.
 ## Animation Modes
 
 ### 1. Chronological Animation Mode
+
 - **Purpose**: Perfect for tutorials and drawing demonstrations
 - **Behavior**: Respects exact drawing timeline including layer switches
 - **Features**: Customizable layer switch delays (10ms-5s), visual transitions
 - **Use Cases**: Educational content, step-by-step tutorials, drawing process documentation
 
 ### 2. Page-by-Page Animation Mode
+
 - **Purpose**: Professional presentations and structured reveals
 - **Behavior**: Groups content by layers, animates all layer content simultaneously
 - **Features**: Visual layer indicators, configurable inter-layer delays
 - **Use Cases**: Presentations, layer-based storytelling, structured content reveals
 
 ### 3. Infinite Panning Mode
+
 - **Purpose**: Large drawings and spatial storytelling
 - **Behavior**: Smooth camera panning between virtual pages during animation
 - **Features**: Automatic page creation, spatial navigation, chronological ordering
@@ -172,12 +194,14 @@ Preferred communication style: Simple, everyday language.
 ## Professional Features
 
 ### HD Replay Studio
+
 - **Resolution**: Native 1920×1080 Full HD recording and playback
 - **Scaling Modes**: Fit, Fill, Stretch, Native with aspect ratio preservation
 - **Background Control**: Custom colors, transparency, professional presets
 - **Export Ready**: PNG export working, foundation for video formats
 
 ### Advanced Controls
+
 - **Timing Controls**: Stroke duration, element delays, layer switch timing
 - **Visual Effects**: Layer transitions (slide, fade), camera smooth panning
 - **Real-time Feedback**: Live statistics, progress tracking, performance monitoring
@@ -186,11 +210,13 @@ Preferred communication style: Simple, everyday language.
 ## Canvas Modes
 
 ### Page Mode
+
 - **Structure**: Fixed canvas size matching screen dimensions
 - **Features**: Ruled lines (16-40px spacing), margin lines (1-50% from left)
 - **Use Cases**: Document-style drawing, note-taking, structured layouts
 
 ### Infinite Canvas Mode
+
 - **Structure**: Unlimited drawing space with virtual page organization
 - **Features**: Origin Box (1920×1080 reference), automatic page creation
 - **Virtual Pages**: Smart grid organization, visual boundaries, element assignment
@@ -199,6 +225,7 @@ Preferred communication style: Simple, everyday language.
 ## Installation & Development
 
 ### Quick Start
+
 ```bash
 npm run dev        # Start development server (port 8080)
 npm run build      # Production build
@@ -207,6 +234,7 @@ npm run typecheck  # TypeScript validation
 ```
 
 ### Replit Development
+
 - Optimized for Replit with automatic port configuration
 - Hot reload enabled for both client and server
 - Express server integrated with Vite dev middleware
@@ -214,6 +242,7 @@ npm run typecheck  # TypeScript validation
 ## Technical Architecture
 
 ### File Structure
+
 ```
 client/                          # React frontend application
 ├── components/                  # UI components organized by feature
@@ -237,6 +266,7 @@ shared/                         # Shared types and utilities
 ```
 
 ### Key Systems
+
 - **DrawingContext**: Core drawing state and stroke management
 - **AnimationContext**: Advanced animation modes and timeline management
 - **VirtualPagesContext**: Infinite canvas page system
@@ -246,6 +276,7 @@ shared/                         # Shared types and utilities
 ## Success Metrics
 
 ### Completed Achievements
+
 - ✅ **Professional Animation System**: 3 distinct animation modes fully operational
 - ✅ **HD Replay Studio**: 1920×1080 professional recording and playback
 - ✅ **Virtual Pages System**: Automatic infinite canvas page management
@@ -253,6 +284,7 @@ shared/                         # Shared types and utilities
 - ✅ **Performance Optimization**: Smooth 60fps rendering for complex drawings
 
 ### Professional Use Cases
+
 - **Education**: Interactive tutorials with chronological drawing replay
 - **Presentations**: Layer-by-layer content reveals with professional transitions
 - **Documentation**: HD export for professional materials and guides

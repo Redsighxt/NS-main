@@ -145,7 +145,7 @@ export class NativeReplaySystem {
     // Calculate content centering with proper bounds checking
     const canvasCenterX = this.canvas.width / 2;
     const canvasCenterY = this.canvas.height / 2;
-    
+
     // Center content in canvas with the applied scale
     const offsetX = canvasCenterX - contentCenterX * scale;
     const offsetY = canvasCenterY - contentCenterY * scale;
@@ -290,55 +290,64 @@ export class NativeReplaySystem {
     pageGroups: any[],
   ): Promise<void> {
     console.log("Starting chronological replay with page transitions");
-    
+
     // Build a combined timeline that includes page transitions
     let currentPageIndex = -1;
     let elementIndex = 0;
     const totalElements = this.elements.length;
 
     // Sort elements by timestamp for chronological order
-    const sortedElements = [...this.elements].sort((a, b) => a.timestamp - b.timestamp);
+    const sortedElements = [...this.elements].sort(
+      (a, b) => a.timestamp - b.timestamp,
+    );
 
     for (const element of sortedElements) {
       // Find which page this element belongs to
       const elementPage = virtualPagesManager.findElementPage(element);
-      const pageGroupIndex = pageGroups.findIndex(group => group.page.id === elementPage.id);
+      const pageGroupIndex = pageGroups.findIndex(
+        (group) => group.page.id === elementPage.id,
+      );
 
       // If we need to switch to a new page
       if (pageGroupIndex !== currentPageIndex) {
-        console.log(`Switching to page ${elementPage.id} for element ${element.id}`);
-        
+        console.log(
+          `Switching to page ${elementPage.id} for element ${element.id}`,
+        );
+
         // Transition to the new page
         await this.transitionToPage(elementPage);
         currentPageIndex = pageGroupIndex;
-        
+
         // Small delay after page transition
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
 
       // Animate the single element
-      const singleElementTimeline = this.animationEngine.buildTimeline([element]);
-      
+      const singleElementTimeline = this.animationEngine.buildTimeline([
+        element,
+      ]);
+
       await new Promise<void>((resolve) => {
         this.animationEngine.play(
           (progress) => {
             // Calculate overall progress
-            const overallProgress = ((elementIndex + progress / 100) / totalElements) * 100;
+            const overallProgress =
+              ((elementIndex + progress / 100) / totalElements) * 100;
             if (this.onProgressCallback) {
               this.onProgressCallback(overallProgress);
             }
           },
           () => {
             resolve();
-          }
+          },
         );
       });
 
       elementIndex++;
-      
+
       // Small delay between elements
       if (elementIndex < totalElements) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
@@ -376,8 +385,12 @@ export class NativeReplaySystem {
       return firstTimestampA - firstTimestampB;
     });
 
-    console.log(`Grouped ${elements.length} elements into ${groups.length} pages:`,
-      groups.map(g => ({ pageId: g.page.id, elementCount: g.elements.length }))
+    console.log(
+      `Grouped ${elements.length} elements into ${groups.length} pages:`,
+      groups.map((g) => ({
+        pageId: g.page.id,
+        elementCount: g.elements.length,
+      })),
     );
 
     return groups;
@@ -443,7 +456,7 @@ export class NativeReplaySystem {
       console.log(`Animating viewport transition:`, {
         from: startViewport,
         to: targetViewport,
-        duration
+        duration,
       });
 
       const animate = () => {
@@ -470,7 +483,10 @@ export class NativeReplaySystem {
         this.renderer.clear(); // Clear for transition effect
 
         if (progress >= 1) {
-          console.log(`Viewport transition completed. Final viewport:`, this.viewport);
+          console.log(
+            `Viewport transition completed. Final viewport:`,
+            this.viewport,
+          );
           resolve();
         } else {
           requestAnimationFrame(animate);

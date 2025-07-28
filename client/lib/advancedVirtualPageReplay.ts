@@ -73,7 +73,9 @@ export async function replayWithVirtualPages(
   onProgress?: (progress: number) => void,
 ): Promise<void> {
   console.log("🚀 DEBUG: replayWithVirtualPages called");
-  console.log(`🎬 Starting ${config.mode} replay with ${elements.length} elements`);
+  console.log(
+    `🎬 Starting ${config.mode} replay with ${elements.length} elements`,
+  );
   console.log("🔧 DEBUG: Config:", config);
   console.log("🔧 DEBUG: Settings:", settings);
   console.log("🔧 DEBUG: Container details:", {
@@ -82,7 +84,7 @@ export async function replayWithVirtualPages(
     className: container?.className,
     id: container?.id,
     parentElement: container?.parentElement?.tagName,
-    innerHTML: container?.innerHTML.substring(0, 100) + "..."
+    innerHTML: container?.innerHTML.substring(0, 100) + "...",
   });
 
   if (!container) {
@@ -95,14 +97,17 @@ export async function replayWithVirtualPages(
     throw new Error("No elements to animate");
   }
 
-  console.log("🔧 DEBUG: Elements to animate:", elements.map(e => ({
-    id: e.id,
-    type: e.type,
-    x: e.x,
-    y: e.y,
-    width: e.width,
-    height: e.height
-  })));
+  console.log(
+    "🔧 DEBUG: Elements to animate:",
+    elements.map((e) => ({
+      id: e.id,
+      type: e.type,
+      x: e.x,
+      y: e.y,
+      width: e.width,
+      height: e.height,
+    })),
+  );
 
   // FIXED: Setup container properly first
   console.log("🔧 DEBUG: Setting up container...");
@@ -156,7 +161,7 @@ function setupReplayContainer(
     height: container.style.height,
     position: container.style.position,
     innerHTML: container.innerHTML.length,
-    rect: container.getBoundingClientRect()
+    rect: container.getBoundingClientRect(),
   });
 
   // Clear container
@@ -184,7 +189,7 @@ function setupReplayContainer(
     position: container.style.position,
     backgroundColor: container.style.backgroundColor,
     border: container.style.border,
-    rect: container.getBoundingClientRect()
+    rect: container.getBoundingClientRect(),
   });
 
   console.log(`📦 Container setup: fills parent container completely`);
@@ -206,18 +211,21 @@ async function executeChronologicalReplay(
     tagName: container.tagName,
     className: container.className,
     rect: container.getBoundingClientRect(),
-    innerHTML: container.innerHTML.length
+    innerHTML: container.innerHTML.length,
   });
 
   // Build chronological timeline with page switches
   const timeline = buildChronologicalTimeline(elements);
   console.log(`📅 Timeline: ${timeline.length} events`);
-  console.log("🔧 DEBUG: Timeline events:", timeline.map(e => ({
-    type: e.type,
-    timestamp: e.timestamp,
-    elementId: e.element?.id,
-    elementType: e.element?.type
-  })));
+  console.log(
+    "🔧 DEBUG: Timeline events:",
+    timeline.map((e) => ({
+      type: e.type,
+      timestamp: e.timestamp,
+      elementId: e.element?.id,
+      elementType: e.element?.type,
+    })),
+  );
 
   // Create viewport that fills the entire container
   console.log("🔧 DEBUG: Creating viewport manager...");
@@ -454,7 +462,7 @@ function createViewportManager(
     height: containerHeight,
     rect: containerRect,
     parentElement: container.parentElement?.tagName,
-    parentClass: container.parentElement?.className
+    parentClass: container.parentElement?.className,
   });
 
   // Create viewport that fills the entire container
@@ -481,7 +489,7 @@ function createViewportManager(
     originBoxSize: `${originBoxWidth}x${originBoxHeight}`,
     scaleX,
     scaleY,
-    finalScale: scale
+    finalScale: scale,
   });
 
   // Center the scaled Origin Box in the container
@@ -492,7 +500,7 @@ function createViewportManager(
 
   console.log("🔧 DEBUG: Centering calculations:", {
     scaledSize: `${scaledWidth}x${scaledHeight}`,
-    offset: `${offsetX}, ${offsetY}`
+    offset: `${offsetX}, ${offsetY}`,
   });
 
   // Apply the transform to scale and center the Origin Box
@@ -527,8 +535,8 @@ function createViewportManager(
       width: viewport.style.width,
       height: viewport.style.height,
       transform: viewport.style.transform,
-      position: viewport.style.position
-    }
+      position: viewport.style.position,
+    },
   });
 
   return viewport;
@@ -546,10 +554,10 @@ function updateViewportForPage(
 
   // For page transitions, we can add minimal visual feedback
   // but keep the main transform intact for proper scaling
-  
+
   // Get current transform
   const currentTransform = viewport.style.transform;
-  
+
   // Add subtle page offset for visual indication
   let pageOffsetX = 0;
   let pageOffsetY = 0;
@@ -562,17 +570,23 @@ function updateViewportForPage(
 
   // Apply transition with minimal offset
   viewport.style.transition = "transform 0.3s ease-out";
-  
+
   // Parse existing transform and add subtle offset
-  const transformMatch = currentTransform.match(/translate\(([^)]+)\) scale\(([^)]+)\)/);
+  const transformMatch = currentTransform.match(
+    /translate\(([^)]+)\) scale\(([^)]+)\)/,
+  );
   if (transformMatch) {
     const [, translatePart, scalePart] = transformMatch;
-    const [currentX, currentY] = translatePart.split(',').map(s => parseFloat(s.trim()));
-    
+    const [currentX, currentY] = translatePart
+      .split(",")
+      .map((s) => parseFloat(s.trim()));
+
     viewport.style.transform = `translate(${currentX + pageOffsetX}px, ${currentY + pageOffsetY}px) scale(${scalePart})`;
   }
 
-  console.log(`🎯 Page ${page.id} - minimal offset applied: (${pageOffsetX}, ${pageOffsetY})`);
+  console.log(
+    `🎯 Page ${page.id} - minimal offset applied: (${pageOffsetX}, ${pageOffsetY})`,
+  );
 }
 
 /**
@@ -744,14 +758,14 @@ async function animateElementInViewport(
     y: element.y,
     width: element.width,
     height: element.height,
-    points: element.points?.length || 0
+    points: element.points?.length || 0,
   });
   console.log("🔧 DEBUG: Viewport:", {
     tagName: viewport.tagName,
     className: viewport.className,
     rect: viewport.getBoundingClientRect(),
     transform: viewport.style.transform,
-    innerHTML: viewport.innerHTML.length
+    innerHTML: viewport.innerHTML.length,
   });
 
   const duration = getElementDuration(element, settings);
