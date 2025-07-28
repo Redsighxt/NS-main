@@ -652,7 +652,7 @@ function createAppState(): any {
     zoom: { value: 1 },
     scrollX: 0,
     scrollY: 0,
-    width: 800,
+    width: 1920,  // CRITICAL FIX: Use origin box dimensions
     height: 600,
   };
 }
