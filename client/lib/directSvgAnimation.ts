@@ -671,7 +671,7 @@ async function exportElementsToSvg(
       elements: excalidrawElements,
       appState: appState,
       files: {},
-      exportPadding: 10,
+      exportPadding: 0, // CRITICAL FIX: Remove padding to prevent cropping
     });
     console.log("SVG exported successfully:", svg);
     return svg;
