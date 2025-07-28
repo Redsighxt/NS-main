@@ -662,7 +662,38 @@ async function exportElementsToSvg(
   elements: DrawingElement[],
 ): Promise<SVGSVGElement> {
   console.log("Exporting elements to SVG:", elements.length);
-  // CRITICAL FIX: Normalize world coordinates to origin box space\n  const normalizedElements = elements.map(element => {\n    const offsetX = 960; const offsetY = 540; const scale = 0.5;\n    const normalizedX = element.x * scale + offsetX;\n    const normalizedY = element.y * scale + offsetY;\n    const clampedX = Math.max(0, Math.min(1920, normalizedX));\n    const clampedY = Math.max(0, Math.min(1080, normalizedY));\n    let normalizedPoints;\n    if (element.points) {\n      normalizedPoints = element.points.map(point => ({\n        x: Math.max(0, Math.min(1920, point.x * scale + offsetX)),\n        y: Math.max(0, Math.min(1080, point.y * scale + offsetY))\n      }));\n    }\n    console.log(`Normalized ${element.id}: (${element.x}, ${element.y}) -> (${clampedX}, ${clampedY})`);\n    return { ...element, x: clampedX, y: clampedY, points: normalizedPoints || element.points };\n  });\n  \n  const excalidrawElements = normalizedElements.map(convertToExcalidrawElement);
+
+  // CRITICAL FIX: Normalize world coordinates to origin box space
+  const normalizedElements = elements.map(element => {
+    const offsetX = 960;
+    const offsetY = 540;
+    const scale = 0.5;
+
+    const normalizedX = element.x * scale + offsetX;
+    const normalizedY = element.y * scale + offsetY;
+
+    const clampedX = Math.max(0, Math.min(1920, normalizedX));
+    const clampedY = Math.max(0, Math.min(1080, normalizedY));
+
+    let normalizedPoints;
+    if (element.points) {
+      normalizedPoints = element.points.map(point => ({
+        x: Math.max(0, Math.min(1920, point.x * scale + offsetX)),
+        y: Math.max(0, Math.min(1080, point.y * scale + offsetY))
+      }));
+    }
+
+    console.log(`Normalized ${element.id}: (${element.x}, ${element.y}) -> (${clampedX}, ${clampedY})`);
+
+    return {
+      ...element,
+      x: clampedX,
+      y: clampedY,
+      points: normalizedPoints || element.points
+    };
+  });
+
+  const excalidrawElements = normalizedElements.map(convertToExcalidrawElement);
   console.log("Converted to excalidraw elements:", excalidrawElements.length);
   const appState = createAppState();
 
