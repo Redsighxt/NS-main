@@ -372,16 +372,30 @@ function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
 }
 
 /**
- * FIXED: Create viewport that fills entire container with proper scale
+ * FIXED: Create viewport that fills entire container with proper scale - WITH DEBUGGING
  */
 function createViewportManager(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
 ) {
+  console.log("🔧 DEBUG: createViewportManager called");
+  console.log("🔧 DEBUG: Container:", container);
+  console.log("🔧 DEBUG: Container tag name:", container.tagName);
+  console.log("🔧 DEBUG: Container class:", container.className);
+  console.log("🔧 DEBUG: Container id:", container.id);
+
   // Get actual container dimensions
   const containerRect = container.getBoundingClientRect();
   const containerWidth = containerRect.width || 800;
   const containerHeight = containerRect.height || 600;
+
+  console.log("🔧 DEBUG: Container dimensions:", {
+    width: containerWidth,
+    height: containerHeight,
+    rect: containerRect,
+    parentElement: container.parentElement?.tagName,
+    parentClass: container.parentElement?.className
+  });
 
   // Create viewport that fills the entire container
   const viewport = document.createElement("div");
@@ -393,48 +407,70 @@ function createViewportManager(
   viewport.style.height = "100%";
   viewport.style.overflow = "visible";
 
+  console.log("🔧 DEBUG: Viewport element created");
+
   // CRITICAL FIX: Calculate scale to fit Origin Box (1920x1080) in container
   const originBoxWidth = 1920;
   const originBoxHeight = 1080;
-  
+
   const scaleX = containerWidth / originBoxWidth;
   const scaleY = containerHeight / originBoxHeight;
   const scale = Math.min(scaleX, scaleY); // Fit within container
-  
+
+  console.log("🔧 DEBUG: Scale calculations:", {
+    originBoxSize: `${originBoxWidth}x${originBoxHeight}`,
+    scaleX,
+    scaleY,
+    finalScale: scale
+  });
+
   // Center the scaled Origin Box in the container
   const scaledWidth = originBoxWidth * scale;
   const scaledHeight = originBoxHeight * scale;
   const offsetX = (containerWidth - scaledWidth) / 2;
   const offsetY = (containerHeight - scaledHeight) / 2;
 
+  console.log("🔧 DEBUG: Centering calculations:", {
+    scaledSize: `${scaledWidth}x${scaledHeight}`,
+    offset: `${offsetX}, ${offsetY}`
+  });
+
   // Apply the transform to scale and center the Origin Box
-  viewport.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  const transformString = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  viewport.style.transform = transformString;
   viewport.style.transformOrigin = "0 0";
 
   // Set the viewport to Origin Box dimensions (will be scaled by transform)
   viewport.style.width = `${originBoxWidth}px`;
   viewport.style.height = `${originBoxHeight}px`;
 
-  // Debug tint
-  if (config.showDebugTints) {
-    viewport.style.backgroundColor = "rgba(255, 255, 0, 0.2)";
-    viewport.style.border = "2px dashed rgba(255, 165, 0, 0.8)";
-    console.log("🔍 Debug tint enabled - viewport should fill container");
-  } else {
-    viewport.style.backgroundColor = "transparent";
-    viewport.style.border = "none";
-  }
+  console.log("🔧 DEBUG: Transform applied:", transformString);
 
+  // ALWAYS SHOW DEBUG TINT AND BORDER FOR DEBUGGING
+  viewport.style.backgroundColor = "rgba(255, 255, 0, 0.3)";
+  viewport.style.border = "3px solid red";
+  console.log("🔧 DEBUG: Debug tint and border applied for debugging");
+
+  console.log("🔧 DEBUG: Appending viewport to container");
   container.appendChild(viewport);
-  
-  console.log(`🎯 Viewport created:`, {
+
+  // Log final state
+  const finalRect = viewport.getBoundingClientRect();
+  console.log("🔧 DEBUG: Final viewport state:", {
     containerSize: `${containerWidth}x${containerHeight}`,
     originBoxSize: `${originBoxWidth}x${originBoxHeight}`,
     scale: scale,
     offset: `${offsetX}, ${offsetY}`,
-    transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`
+    transform: transformString,
+    finalRect: finalRect,
+    computedStyle: {
+      width: viewport.style.width,
+      height: viewport.style.height,
+      transform: viewport.style.transform,
+      position: viewport.style.position
+    }
   });
-  
+
   return viewport;
 }
 
