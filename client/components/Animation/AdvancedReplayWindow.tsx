@@ -1228,7 +1228,7 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas2);
         console.log("Extended config:", extendedConfig);
 
-        // Use new advanced virtual page replay system with progressive fills
+        // FIXED: Use the working virtual page replay system
         const chronoConfig: VirtualPageReplayConfig = {
           width,
           height,
@@ -1237,7 +1237,7 @@ export function AdvancedReplayWindow() {
           transitionType: replaySettings.transitionType,
           transitionDuration: replaySettings.transitionDuration,
           showPageIndicators: true,
-          showDebugTints: replaySettings.showDebugTints,
+          showDebugTints: false, // Disable debug tints in popup by default
         };
 
         const chronoSettings: ExtendedReplaySettings = {
@@ -1259,6 +1259,9 @@ export function AdvancedReplayWindow() {
             easing: replaySettings.libraryObjects.easing,
           },
         };
+
+        console.log("Starting chronological replay with config:", chronoConfig);
+        console.log("Elements to replay:", elementsToReplay);
 
         await replayWithVirtualPages(
           elementsToReplay,
