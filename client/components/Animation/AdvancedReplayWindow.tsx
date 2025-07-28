@@ -663,7 +663,7 @@ export function AdvancedReplayWindow() {
           </div>
           <div class="main-content">
             <div class="replay-container">
-              <div id="replayCanvas" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width / 1920, height / 1080)});"></div>
+              <div id="replayCanvas" class="replay-canvas" style="width: ${width}px; height: ${height}px; position: relative; transform-origin: top left;"></div>
             </div>
             <div class="controls">
               <button onclick="startReplay()" class="play-btn">▶ Play</button>
@@ -1125,7 +1125,7 @@ export function AdvancedReplayWindow() {
           </div>
           <div class="main-content">
             <div class="replay-container">
-              <div id="replayCanvas2" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width / 1920, height / 1080)});"></div>
+              <div id="replayCanvas2" class="replay-canvas" style="width: ${width}px; height: ${height}px; position: relative; transform-origin: top left;"></div>
             </div>
             <div class="controls">
               <button onclick="startReplay2()" class="play-btn">▶ Play</button>
@@ -1500,7 +1500,7 @@ export function AdvancedReplayWindow() {
                 </Button>
 
                 <Badge variant="outline" className="text-white border-white/30">
-                  {replayWidth} × {replayHeight} • {replaySettings.scalingMode}
+                  {replayWidth} × {replayHeight} �� {replaySettings.scalingMode}
                 </Badge>
               </div>
 
