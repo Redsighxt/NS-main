@@ -1423,12 +1423,12 @@ export function AdvancedReplayWindow() {
     >
       <canvas
         ref={canvasRef}
-        width={1920}
-        height={1080}
+        width={replayWidth}
+        height={replayHeight}
         className={`absolute inset-0 ${isFullscreen ? "" : "border rounded"}`}
         style={{
-          width: "1920px",
-          height: "1080px",
+          width: `${replayWidth}px`,
+          height: `${replayHeight}px`,
           backgroundColor: replaySettings.showBackground
             ? replaySettings.backgroundColor
             : "transparent",
