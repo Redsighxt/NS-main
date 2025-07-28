@@ -266,7 +266,7 @@ export function AdvancedReplayWindow() {
       );
 
       if (previewMode === "chronological") {
-        // Use chronological replay system with proper page transitions
+        // EXACT SAME LOGIC AS CHRONOLOGICAL POPUP WINDOW
         console.log("Using chronological mode for preview");
 
         const chronologicalConfig: ChronologicalReplayConfig = {
@@ -278,44 +278,18 @@ export function AdvancedReplayWindow() {
           transitionDuration: replaySettings.transitionDuration,
         };
 
-        // Create proper animation settings for chronological mode
-        const chronologicalSettings = {
-          ...animationState.settings,
-          strokeDuration: replaySettings.penStrokes.elementDuration,
-          strokeDelay: replaySettings.penStrokes.groupDelay,
-          strokeSpeed: 1,
-          useElementDuration: elementsToReplay.map((element, index) => {
-            if (element.type === "path") {
-              return replaySettings.penStrokes.trueSpeed
-                ? calculateTrueSpeedDuration(element)
-                : replaySettings.penStrokes.elementDuration;
-            } else if (element.type === "highlighter") {
-              return replaySettings.penStrokes.elementDuration;
-            } else if (
-              element.type === "rectangle" ||
-              element.type === "ellipse" ||
-              element.type === "line" ||
-              element.type === "arrow"
-            ) {
-              return replaySettings.shapes.elementDuration;
-            } else {
-              return replaySettings.libraryObjects.elementDuration;
-            }
-          }),
-        };
-
         await replayChronologicalMode(
           elementsToReplay,
           canvasRef.current,
           chronologicalConfig,
-          chronologicalSettings,
+          animationState.settings,
           (progress) => {
             console.log(`Chronological preview progress: ${progress}%`);
             setProgress(progress);
           },
         );
       } else {
-        // Use origin box replay system with proper page grouping
+        // EXACT SAME LOGIC AS LAYER REPLAY POPUP WINDOW
         console.log("Using layer mode for preview");
 
         const originBoxConfig: OriginBoxReplayConfig = {
@@ -328,37 +302,11 @@ export function AdvancedReplayWindow() {
           pageByPage: replaySettings.pageByPage,
         };
 
-        // Create proper animation settings for layer mode
-        const layerSettings = {
-          ...animationState.settings,
-          strokeDuration: replaySettings.penStrokes.elementDuration,
-          strokeDelay: replaySettings.penStrokes.groupDelay,
-          strokeSpeed: 1,
-          useElementDuration: elementsToReplay.map((element, index) => {
-            if (element.type === "path") {
-              return replaySettings.penStrokes.trueSpeed
-                ? calculateTrueSpeedDuration(element)
-                : replaySettings.penStrokes.elementDuration;
-            } else if (element.type === "highlighter") {
-              return replaySettings.penStrokes.elementDuration;
-            } else if (
-              element.type === "rectangle" ||
-              element.type === "ellipse" ||
-              element.type === "line" ||
-              element.type === "arrow"
-            ) {
-              return replaySettings.shapes.elementDuration;
-            } else {
-              return replaySettings.libraryObjects.elementDuration;
-            }
-          }),
-        };
-
         await replayOriginBoxMode(
           elementsToReplay,
           canvasRef.current,
           originBoxConfig,
-          layerSettings,
+          animationState.settings,
           (progress) => {
             console.log(`Layer preview progress: ${progress}%`);
             setProgress(progress);
