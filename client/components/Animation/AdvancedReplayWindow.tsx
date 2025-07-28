@@ -1397,17 +1397,17 @@ export function AdvancedReplayWindow() {
     >
       <canvas
         ref={canvasRef}
-        width={replayWidth}
-        height={replayHeight}
+        width={1920}
+        height={1080}
         className={`absolute inset-0 ${isFullscreen ? "" : "border rounded"}`}
         style={{
-          width: "100%",
-          height: "100%",
+          width: "1920px",
+          height: "1080px",
           backgroundColor: replaySettings.showBackground
             ? replaySettings.backgroundColor
             : "transparent",
           transform: `scale(${previewScale})`,
-          transformOrigin: "center",
+          transformOrigin: "top left",
           border: isFullscreen ? "none" : undefined,
         }}
       />
