@@ -284,32 +284,46 @@ export function AdvancedReplayWindow() {
           transitionDuration: replaySettings.transitionDuration,
         };
 
-        // Use directSvgAnimation for preview to maintain progressive fills
-        await animateElementsDirectly(
+        // Use new virtual page replay system for preview
+        const previewConfig: VirtualPageReplayConfig = {
+          width,
+          height,
+          backgroundColor: replaySettings.backgroundColor,
+          mode: "chronological",
+          transitionType: replaySettings.transitionType,
+          transitionDuration: replaySettings.transitionDuration,
+          showPageIndicators: true,
+          showDebugTints: replaySettings.showDebugTints,
+        };
+
+        const previewSettings: ExtendedReplaySettings = {
+          penStrokes: {
+            elementDuration: replaySettings.penStrokes.elementDuration,
+            groupDelay: replaySettings.penStrokes.groupDelay,
+            easing: replaySettings.penStrokes.easing,
+            trueSpeed: replaySettings.penStrokes.trueSpeed,
+            trueSpeedRate: replaySettings.penStrokes.trueSpeedRate,
+          },
+          shapes: {
+            elementDuration: replaySettings.shapes.elementDuration,
+            groupDelay: replaySettings.shapes.groupDelay,
+            easing: replaySettings.shapes.easing,
+          },
+          libraryObjects: {
+            elementDuration: replaySettings.libraryObjects.elementDuration,
+            groupDelay: replaySettings.libraryObjects.groupDelay,
+            easing: replaySettings.libraryObjects.easing,
+          },
+        };
+
+        await replayWithVirtualPages(
           elementsToReplay,
           canvasRef.current.parentElement as HTMLElement,
-          {
-            extendedConfig: {
-              penStrokes: {
-                elementDuration: replaySettings.penStrokes.elementDuration,
-                groupDelay: replaySettings.penStrokes.groupDelay,
-                easing: replaySettings.penStrokes.easing,
-              },
-              shapes: {
-                elementDuration: replaySettings.shapes.elementDuration,
-                groupDelay: replaySettings.shapes.groupDelay,
-                easing: replaySettings.shapes.easing,
-              },
-              libraryObjects: {
-                elementDuration: replaySettings.libraryObjects.elementDuration,
-                groupDelay: replaySettings.libraryObjects.groupDelay,
-                easing: replaySettings.libraryObjects.easing,
-              },
-            },
-            onProgress: (progress) => {
-              console.log(`Chronological preview progress: ${progress}%`);
-              setProgress(progress);
-            },
+          previewConfig,
+          previewSettings,
+          (progress) => {
+            console.log(`Chronological preview progress: ${progress}%`);
+            setProgress(progress);
           },
         );
       } else {
