@@ -135,11 +135,15 @@ export function NativeReplayWindow() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas size
-    canvas.width = 800;
-    canvas.height = 600;
-    canvas.style.width = "800px";
-    canvas.style.height = "600px";
+    // CRITICAL FIX: Set proper canvas size to prevent zoom issues
+    // Use larger dimensions that match typical drawing space
+    canvas.width = 1920;
+    canvas.height = 1080;
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.maxWidth = "800px";
+    canvas.style.maxHeight = "600px";
+    canvas.style.objectFit = "contain";
 
     // Initialize replay system
     replaySystemRef.current = initializeReplaySystem();
@@ -320,7 +324,7 @@ export function NativeReplayWindow() {
               </div>
             </div>
             <div class="canvas-container">
-              <canvas id="replayCanvas" width="800" height="600"></canvas>
+              <canvas id="replayCanvas" width="1920" height="1080" style="max-width: 100%; max-height: 100%; object-fit: contain;"></canvas>
             </div>
             <div class="info">
               Native Canvas Replay • ${elements.length} elements • No zoom issues!

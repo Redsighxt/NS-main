@@ -663,7 +663,7 @@ export function AdvancedReplayWindow() {
           </div>
           <div class="main-content">
             <div class="replay-container">
-              <div id="replayCanvas" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width / 1920, height / 1080)});"></div>
+              <div id="replayCanvas" class="replay-canvas" style="width: ${width}px; height: ${height}px; position: relative; transform-origin: top left;"></div>
             </div>
             <div class="controls">
               <button onclick="startReplay()" class="play-btn">▶ Play</button>
@@ -767,7 +767,7 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas);
         console.log("Extended config:", extendedConfig);
 
-        // Use new advanced virtual page replay system with progressive fills
+        // FIXED: Use the working virtual page replay system
         const layerConfig: VirtualPageReplayConfig = {
           width,
           height,
@@ -776,7 +776,7 @@ export function AdvancedReplayWindow() {
           transitionType: replaySettings.transitionType,
           transitionDuration: replaySettings.transitionDuration,
           showPageIndicators: true,
-          showDebugTints: replaySettings.showDebugTints,
+          showDebugTints: false, // Disable debug tints in popup by default
         };
 
         const layerSettings: ExtendedReplaySettings = {
@@ -798,6 +798,9 @@ export function AdvancedReplayWindow() {
             easing: replaySettings.libraryObjects.easing,
           },
         };
+
+        console.log("Starting layer replay with config:", layerConfig);
+        console.log("Elements to replay:", elementsToReplay);
 
         await replayWithVirtualPages(
           elementsToReplay,
@@ -1125,7 +1128,7 @@ export function AdvancedReplayWindow() {
           </div>
           <div class="main-content">
             <div class="replay-container">
-              <div id="replayCanvas2" class="replay-canvas" style="width: 1920px; height: 1080px; position: relative; transform-origin: top left; transform: scale(${Math.min(width / 1920, height / 1080)});"></div>
+              <div id="replayCanvas2" class="replay-canvas" style="width: ${width}px; height: ${height}px; position: relative; transform-origin: top left;"></div>
             </div>
             <div class="controls">
               <button onclick="startReplay2()" class="play-btn">▶ Play</button>
@@ -1228,7 +1231,7 @@ export function AdvancedReplayWindow() {
         console.log("Container:", replayCanvas2);
         console.log("Extended config:", extendedConfig);
 
-        // Use new advanced virtual page replay system with progressive fills
+        // FIXED: Use the working virtual page replay system
         const chronoConfig: VirtualPageReplayConfig = {
           width,
           height,
@@ -1237,7 +1240,7 @@ export function AdvancedReplayWindow() {
           transitionType: replaySettings.transitionType,
           transitionDuration: replaySettings.transitionDuration,
           showPageIndicators: true,
-          showDebugTints: replaySettings.showDebugTints,
+          showDebugTints: false, // Disable debug tints in popup by default
         };
 
         const chronoSettings: ExtendedReplaySettings = {
@@ -1259,6 +1262,9 @@ export function AdvancedReplayWindow() {
             easing: replaySettings.libraryObjects.easing,
           },
         };
+
+        console.log("Starting chronological replay with config:", chronoConfig);
+        console.log("Elements to replay:", elementsToReplay);
 
         await replayWithVirtualPages(
           elementsToReplay,
@@ -1373,34 +1379,33 @@ export function AdvancedReplayWindow() {
     return Math.max(100, Math.min(duration, 10000));
   };
 
-  // Get container dimensions for preview - always scale from 1920x1080
+  // Get container dimensions for preview - use actual replay dimensions
   const getPreviewDimensions = () => {
-    const baseWidth = 1920;
-    const baseHeight = 1080;
+    const { width: replayWidth, height: replayHeight } = getReplayDimensions();
 
     if (isFullscreen) {
       const availableWidth = window.innerWidth - 40;
       const availableHeight = window.innerHeight - 200;
       const scale = Math.min(
-        availableWidth / baseWidth,
-        availableHeight / baseHeight,
+        availableWidth / replayWidth,
+        availableHeight / replayHeight,
       );
       return {
         scale,
-        width: baseWidth * scale,
-        height: baseHeight * scale,
+        width: replayWidth * scale,
+        height: replayHeight * scale,
       };
     } else {
       const containerWidth = 480;
       const containerHeight = 300;
       const scale = Math.min(
-        containerWidth / baseWidth,
-        containerHeight / baseHeight,
+        containerWidth / replayWidth,
+        containerHeight / replayHeight,
       );
       return {
         scale,
-        width: baseWidth * scale,
-        height: baseHeight * scale,
+        width: replayWidth * scale,
+        height: replayHeight * scale,
       };
     }
   };
@@ -1423,12 +1428,12 @@ export function AdvancedReplayWindow() {
     >
       <canvas
         ref={canvasRef}
-        width={1920}
-        height={1080}
+        width={replayWidth}
+        height={replayHeight}
         className={`absolute inset-0 ${isFullscreen ? "" : "border rounded"}`}
         style={{
-          width: "1920px",
-          height: "1080px",
+          width: `${replayWidth}px`,
+          height: `${replayHeight}px`,
           backgroundColor: replaySettings.showBackground
             ? replaySettings.backgroundColor
             : "transparent",
@@ -1500,7 +1505,7 @@ export function AdvancedReplayWindow() {
                 </Button>
 
                 <Badge variant="outline" className="text-white border-white/30">
-                  {replayWidth} × {replayHeight} • {replaySettings.scalingMode}
+                  {replayWidth} × {replayHeight} �� {replaySettings.scalingMode}
                 </Badge>
               </div>
 

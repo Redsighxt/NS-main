@@ -1,6 +1,5 @@
-// Advanced Virtual Page Replay System - Built from scratch
-// Handles chronological and layer replay modes with proper page transitions
-// Uses existing directSvgAnimation.ts for progressive fill animations
+// Advanced Virtual Page Replay System - FIXED: Proper full container scaling
+// This version ensures the viewport fills the entire popup container correctly
 
 import type { DrawingElement } from "../contexts/DrawingContext";
 import type { AnimationSettings } from "../contexts/AnimationContext";
@@ -64,7 +63,7 @@ interface PageGroup {
 }
 
 /**
- * Main entry point for advanced virtual page replay
+ * Main entry point for advanced virtual page replay - WITH DEBUGGING
  */
 export async function replayWithVirtualPages(
   elements: DrawingElement[],
@@ -73,37 +72,50 @@ export async function replayWithVirtualPages(
   settings: ExtendedReplaySettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
+  console.log("🚀 DEBUG: replayWithVirtualPages called");
   console.log(
     `🎬 Starting ${config.mode} replay with ${elements.length} elements`,
   );
-  console.log(`📊 Animation settings:`, settings);
-  console.log(`🔧 Config:`, config);
+  console.log("🔧 DEBUG: Config:", config);
+  console.log("🔧 DEBUG: Settings:", settings);
+  console.log("🔧 DEBUG: Container details:", {
+    container,
+    tagName: container?.tagName,
+    className: container?.className,
+    id: container?.id,
+    parentElement: container?.parentElement?.tagName,
+    innerHTML: container?.innerHTML.substring(0, 100) + "...",
+  });
 
   if (!container) {
+    console.error("🔧 DEBUG: No container provided!");
     throw new Error("No container provided for virtual page replay");
   }
 
   if (elements.length === 0) {
+    console.error("🔧 DEBUG: No elements to animate!");
     throw new Error("No elements to animate");
   }
 
-  // Debug: Log element distribution across virtual pages
-  const pageDistribution = new Map<string, number>();
-  elements.forEach((element) => {
-    const page = virtualPagesManager.findElementPage(element);
-    pageDistribution.set(page.id, (pageDistribution.get(page.id) || 0) + 1);
-  });
-
   console.log(
-    `📄 Virtual page distribution:`,
-    Array.from(pageDistribution.entries()),
+    "🔧 DEBUG: Elements to animate:",
+    elements.map((e) => ({
+      id: e.id,
+      type: e.type,
+      x: e.x,
+      y: e.y,
+      width: e.width,
+      height: e.height,
+    })),
   );
 
-  // Clear and setup container
+  // FIXED: Setup container properly first
+  console.log("🔧 DEBUG: Setting up container...");
   setupReplayContainer(container, config);
 
   try {
     if (config.mode === "chronological") {
+      console.log("🔧 DEBUG: Starting chronological replay");
       await executeChronologicalReplay(
         elements,
         container,
@@ -112,6 +124,7 @@ export async function replayWithVirtualPages(
         onProgress,
       );
     } else {
+      console.log("🔧 DEBUG: Starting layer replay");
       await executeLayerReplay(
         elements,
         container,
@@ -124,63 +137,66 @@ export async function replayWithVirtualPages(
     console.log(`🎉 Virtual page replay completed successfully`);
   } catch (error) {
     console.error("❌ Virtual page replay error:", error);
+    console.error("❌ ERROR STACK:", error.stack);
     throw error;
   }
 }
 
 /**
- * Setup the replay container with validation
+ * FIXED: Setup container to fill entire space with proper scaling - WITH DEBUGGING
  */
 function setupReplayContainer(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
 ): void {
+  console.log("🔧 DEBUG: setupReplayContainer called");
+
   if (!container) {
+    console.error("🔧 DEBUG: No container element provided!");
     throw new Error("Container element is required");
   }
 
-  if (
-    !config.width ||
-    !config.height ||
-    config.width <= 0 ||
-    config.height <= 0
-  ) {
-    throw new Error("Valid width and height are required");
-  }
+  console.log("🔧 DEBUG: Container before setup:", {
+    width: container.style.width,
+    height: container.style.height,
+    position: container.style.position,
+    innerHTML: container.innerHTML.length,
+    rect: container.getBoundingClientRect(),
+  });
 
   // Clear container
+  console.log("🔧 DEBUG: Clearing container innerHTML");
   container.innerHTML = "";
 
-  // CRITICAL FIX: Always use the full origin box dimensions (1920x1080)
-  // The container should represent the full virtual canvas space
-  const virtualCanvasWidth = 1920;
-  const virtualCanvasHeight = 1080;
-
-  // Setup container styles to match full origin box
-  container.style.width = `${virtualCanvasWidth}px`;
-  container.style.height = `${virtualCanvasHeight}px`;
+  // CRITICAL FIX: Make container fill its parent completely
+  container.style.width = "100%";
+  container.style.height = "100%";
   container.style.backgroundColor = config.backgroundColor || "#ffffff";
   container.style.position = "relative";
-  container.style.overflow = "visible"; // CRITICAL: Allow content to be visible
+  container.style.overflow = "hidden";
 
-  // Remove all borders and debug elements that could cause blue lines
-  container.style.border = "none";
+  // Remove any transforms or positioning that could cause issues
+  container.style.border = "5px solid blue"; // DEBUG: Make container visible
   container.style.outline = "none";
   container.style.boxShadow = "none";
+  container.style.transform = "none";
+  container.style.left = "0";
+  container.style.top = "0";
 
-  // Ensure the container fills its parent properly
-  container.style.maxWidth = "100%";
-  container.style.maxHeight = "100%";
-  container.style.objectFit = "contain";
+  console.log("🔧 DEBUG: Container after setup:", {
+    width: container.style.width,
+    height: container.style.height,
+    position: container.style.position,
+    backgroundColor: container.style.backgroundColor,
+    border: container.style.border,
+    rect: container.getBoundingClientRect(),
+  });
 
-  console.log(
-    `📦 Container setup: ${virtualCanvasWidth}x${virtualCanvasHeight} (full origin box), bg: ${config.backgroundColor}`,
-  );
-  console.log(`📏 Original config requested: ${config.width}x${config.height}`);
+  console.log(`📦 Container setup: fills parent container completely`);
 }
 
 /**
- * Execute chronological replay - follows exact drawing timeline with page transitions
+ * Execute chronological replay - WITH DEBUGGING
  */
 async function executeChronologicalReplay(
   elements: DrawingElement[],
@@ -189,27 +205,32 @@ async function executeChronologicalReplay(
   settings: ExtendedReplaySettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
+  console.log("🔧 DEBUG: executeChronologicalReplay called");
   console.log("⏰ Starting chronological replay");
+  console.log("🔧 DEBUG: Container in executeChronologicalReplay:", {
+    tagName: container.tagName,
+    className: container.className,
+    rect: container.getBoundingClientRect(),
+    innerHTML: container.innerHTML.length,
+  });
 
   // Build chronological timeline with page switches
   const timeline = buildChronologicalTimeline(elements);
   console.log(`📅 Timeline: ${timeline.length} events`);
+  console.log(
+    "🔧 DEBUG: Timeline events:",
+    timeline.map((e) => ({
+      type: e.type,
+      timestamp: e.timestamp,
+      elementId: e.element?.id,
+      elementType: e.element?.type,
+    })),
+  );
 
-  // Log timeline for debugging
-  timeline.forEach((event, index) => {
-    if (event.type === "page-switch") {
-      console.log(
-        `  ${index + 1}. Page switch to ${event.toPage?.id} at ${event.timestamp}`,
-      );
-    } else {
-      console.log(
-        `  ${index + 1}. Element ${event.element?.id} (${event.element?.type}) at ${event.timestamp}`,
-      );
-    }
-  });
-
-  // Create viewport manager for page transitions
+  // Create viewport that fills the entire container
+  console.log("🔧 DEBUG: Creating viewport manager...");
   const viewport = createViewportManager(container, config);
+  console.log("🔧 DEBUG: Viewport manager created:", viewport);
 
   let processedEvents = 0;
   let currentPage: VirtualPage | null = null;
@@ -222,20 +243,15 @@ async function executeChronologicalReplay(
         `📄 Page switch: ${currentPage?.id || "start"} → ${event.toPage?.id}`,
       );
 
-      // Show page transition
       if (event.toPage) {
         await showPageTransition(viewport, currentPage, event.toPage, config);
-
-        // Update viewport to show new page
         updateViewportForPage(viewport, event.toPage, config);
         currentPage = event.toPage;
 
-        // Show page indicator
         if (config.showPageIndicators) {
           const indicator = createPageIndicator(event.toPage);
           viewport.appendChild(indicator);
 
-          // Remove indicator after a delay
           setTimeout(() => {
             if (indicator.parentNode) {
               indicator.parentNode.removeChild(indicator);
@@ -248,19 +264,15 @@ async function executeChronologicalReplay(
         `🎨 Animating element ${event.element.id} of type ${event.element.type}`,
       );
 
-      // Ensure viewport is positioned for this element's page
       const elementPage = virtualPagesManager.findElementPage(event.element);
       if (!currentPage || currentPage.id !== elementPage.id) {
         updateViewportForPage(viewport, elementPage, config);
         currentPage = elementPage;
       }
 
-      // Animate the element with progressive fills using existing system
       await animateElementInViewport(event.element, viewport, settings);
-
       elementCount++;
 
-      // Wait for element delay (except for last element)
       if (elementCount < totalElements) {
         const delay = getElementDelay(event.element, settings);
         await new Promise((resolve) => setTimeout(resolve, delay));
@@ -277,7 +289,7 @@ async function executeChronologicalReplay(
 }
 
 /**
- * Execute layer replay - groups by pages, animates all content in each page
+ * Execute layer replay
  */
 async function executeLayerReplay(
   elements: DrawingElement[],
@@ -288,11 +300,9 @@ async function executeLayerReplay(
 ): Promise<void> {
   console.log("📄 Starting layer replay");
 
-  // Group elements by virtual pages
   const pageGroups = buildLayerPageGroups(elements);
   console.log(`📚 Page groups: ${pageGroups.length} pages`);
 
-  // Create viewport manager for page transitions
   const viewport = createViewportManager(container, config);
 
   let processedGroups = 0;
@@ -304,7 +314,6 @@ async function executeLayerReplay(
       `📖 Animating page ${group.page.id} with ${group.elements.length} elements`,
     );
 
-    // Show page transition (except for first page)
     if (processedGroups > 0) {
       const previousGroup = pageGroups[processedGroups - 1];
       await showPageTransition(
@@ -315,15 +324,12 @@ async function executeLayerReplay(
       );
     }
 
-    // Update viewport to show this page
     updateViewportForPage(viewport, group.page, config);
 
-    // Show page indicator during animation
     if (config.showPageIndicators) {
       const indicator = createPageIndicator(group.page);
       viewport.appendChild(indicator);
 
-      // Remove indicator after animation
       setTimeout(() => {
         if (indicator.parentNode) {
           indicator.parentNode.removeChild(indicator);
@@ -331,13 +337,11 @@ async function executeLayerReplay(
       }, 3000);
     }
 
-    // Animate all elements in this page using existing progressive fill system
     await animatePageElements(
       group.elements,
       viewport,
       settings,
       (elementProgress) => {
-        // Calculate overall progress including completed groups
         const elementsInPreviousGroups = totalElementsProcessed;
         const currentGroupProgress =
           (elementProgress / 100) * group.elements.length;
@@ -354,12 +358,10 @@ async function executeLayerReplay(
     totalElementsProcessed += group.elements.length;
     processedGroups++;
 
-    // Final progress update for this group
     if (onProgress) {
       onProgress((totalElementsProcessed / totalElements) * 100);
     }
 
-    // Wait a bit before next page (if not last page)
     if (processedGroups < pageGroups.length) {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
@@ -376,7 +378,6 @@ function buildChronologicalTimeline(
 ): TimelineEvent[] {
   const timeline: TimelineEvent[] = [];
 
-  // Sort elements by timestamp
   const sortedElements = [...elements].sort(
     (a, b) => a.timestamp - b.timestamp,
   );
@@ -386,7 +387,6 @@ function buildChronologicalTimeline(
   for (const element of sortedElements) {
     const elementPage = virtualPagesManager.findElementPage(element);
 
-    // Check if we need a page switch
     if (elementPage.id !== currentPageId) {
       const fromPage = currentPageId
         ? virtualPagesManager.getPage(currentPageId)
@@ -402,7 +402,6 @@ function buildChronologicalTimeline(
       currentPageId = elementPage.id;
     }
 
-    // Add element event
     timeline.push({
       type: "element",
       timestamp: element.timestamp,
@@ -419,7 +418,6 @@ function buildChronologicalTimeline(
 function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
   const pageMap = new Map<string, PageGroup>();
 
-  // Group elements by page
   for (const element of elements) {
     const page = virtualPagesManager.findElementPage(element);
 
@@ -436,79 +434,159 @@ function buildLayerPageGroups(elements: DrawingElement[]): PageGroup[] {
     group.firstTimestamp = Math.min(group.firstTimestamp, element.timestamp);
   }
 
-  // Sort groups by first element timestamp
   return Array.from(pageMap.values()).sort(
     (a, b) => a.firstTimestamp - b.firstTimestamp,
   );
 }
 
 /**
- * Create viewport manager for handling page views
+ * FIXED: Create viewport that fills entire container with proper scale - WITH DEBUGGING
  */
 function createViewportManager(
   container: HTMLElement,
   config: VirtualPageReplayConfig,
 ) {
-  // Create main viewport div that represents the full 1920x1080 canvas space
+  console.log("🔧 DEBUG: createViewportManager called");
+  console.log("🔧 DEBUG: Container:", container);
+  console.log("🔧 DEBUG: Container tag name:", container.tagName);
+  console.log("🔧 DEBUG: Container class:", container.className);
+  console.log("🔧 DEBUG: Container id:", container.id);
+
+  // Get actual container dimensions
+  const containerRect = container.getBoundingClientRect();
+  const containerWidth = containerRect.width || 800;
+  const containerHeight = containerRect.height || 600;
+
+  console.log("🔧 DEBUG: Container dimensions:", {
+    width: containerWidth,
+    height: containerHeight,
+    rect: containerRect,
+    parentElement: container.parentElement?.tagName,
+    parentClass: container.parentElement?.className,
+  });
+
+  // Create viewport that fills the entire container
   const viewport = document.createElement("div");
   viewport.className = "virtual-page-viewport";
   viewport.style.position = "absolute";
   viewport.style.top = "0";
   viewport.style.left = "0";
+  viewport.style.width = "100%";
+  viewport.style.height = "100%";
+  viewport.style.overflow = "visible";
 
-  // CRITICAL FIX: Set viewport to full origin box dimensions
-  viewport.style.width = "1920px";
-  viewport.style.height = "1080px";
-  viewport.style.overflow = "visible"; // Allow content to be visible
+  console.log("🔧 DEBUG: Viewport element created");
 
-  // The viewport should not be scaled or transformed initially
-  viewport.style.transform = "none";
+  // CRITICAL FIX: Calculate scale to fit Origin Box (1920x1080) in container
+  const originBoxWidth = 1920;
+  const originBoxHeight = 1080;
+
+  const scaleX = containerWidth / originBoxWidth;
+  const scaleY = containerHeight / originBoxHeight;
+  const scale = Math.min(scaleX, scaleY); // Fit within container
+
+  console.log("🔧 DEBUG: Scale calculations:", {
+    originBoxSize: `${originBoxWidth}x${originBoxHeight}`,
+    scaleX,
+    scaleY,
+    finalScale: scale,
+  });
+
+  // Center the scaled Origin Box in the container
+  const scaledWidth = originBoxWidth * scale;
+  const scaledHeight = originBoxHeight * scale;
+  const offsetX = (containerWidth - scaledWidth) / 2;
+  const offsetY = (containerHeight - scaledHeight) / 2;
+
+  console.log("🔧 DEBUG: Centering calculations:", {
+    scaledSize: `${scaledWidth}x${scaledHeight}`,
+    offset: `${offsetX}, ${offsetY}`,
+  });
+
+  // Apply the transform to scale and center the Origin Box
+  const transformString = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  viewport.style.transform = transformString;
   viewport.style.transformOrigin = "0 0";
 
-  // Optional debug tint with reduced blue line visibility
-  if (config.showDebugTints) {
-    viewport.style.backgroundColor = "rgba(255, 255, 0, 0.05)"; // Very light yellow debug
-    viewport.style.border = "1px dashed rgba(255, 165, 0, 0.3)"; // Light orange dashed border
-    console.log("🔍 Debug tint enabled for viewport - reduced visibility");
-  } else {
-    // Ensure no debug artifacts when disabled
-    viewport.style.backgroundColor = "transparent";
-    viewport.style.border = "none";
-  }
+  // Set the viewport to Origin Box dimensions (will be scaled by transform)
+  viewport.style.width = `${originBoxWidth}px`;
+  viewport.style.height = `${originBoxHeight}px`;
 
+  console.log("🔧 DEBUG: Transform applied:", transformString);
+
+  // ALWAYS SHOW DEBUG TINT AND BORDER FOR DEBUGGING
+  viewport.style.backgroundColor = "rgba(255, 255, 0, 0.3)";
+  viewport.style.border = "3px solid red";
+  console.log("🔧 DEBUG: Debug tint and border applied for debugging");
+
+  console.log("🔧 DEBUG: Appending viewport to container");
   container.appendChild(viewport);
-  console.log(`🎯 Viewport created: 1920x1080 (full origin box)`);
+
+  // Log final state
+  const finalRect = viewport.getBoundingClientRect();
+  console.log("🔧 DEBUG: Final viewport state:", {
+    containerSize: `${containerWidth}x${containerHeight}`,
+    originBoxSize: `${originBoxWidth}x${originBoxHeight}`,
+    scale: scale,
+    offset: `${offsetX}, ${offsetY}`,
+    transform: transformString,
+    finalRect: finalRect,
+    computedStyle: {
+      width: viewport.style.width,
+      height: viewport.style.height,
+      transform: viewport.style.transform,
+      position: viewport.style.position,
+    },
+  });
+
   return viewport;
 }
 
 /**
- * Update viewport to show specific page content with proper scaling
+ * Update viewport for page content
  */
 function updateViewportForPage(
   viewport: HTMLElement,
   page: VirtualPage,
   config: VirtualPageReplayConfig,
 ): void {
-  // CRITICAL FIX: For replay, we want to show the content as-is without translation
-  // The SVG export already handles the coordinate system properly
+  console.log(`🎯 Updating viewport for page ${page.id}`);
 
-  // Remove any previous transformations that cause positioning issues
-  viewport.style.transition = "none";
-  viewport.style.transform = "none";
-  viewport.style.transformOrigin = "0 0";
+  // For page transitions, we can add minimal visual feedback
+  // but keep the main transform intact for proper scaling
 
-  // KEEP viewport at full origin box dimensions - NEVER change these
-  viewport.style.width = "1920px";
-  viewport.style.height = "1080px";
+  // Get current transform
+  const currentTransform = viewport.style.transform;
 
-  // Ensure content is visible and not clipped
-  viewport.style.overflow = "visible";
-  viewport.style.position = "absolute";
-  viewport.style.top = "0";
-  viewport.style.left = "0";
+  // Add subtle page offset for visual indication
+  let pageOffsetX = 0;
+  let pageOffsetY = 0;
 
-  console.log(`🎯 Viewport set for page ${page.id} - no translation applied`);
-  console.log(`📏 Viewport dimensions: 1920x1080`);
+  if (!page.isOrigin) {
+    // Very subtle offset for non-origin pages
+    pageOffsetX = page.x * 0.01;
+    pageOffsetY = page.y * 0.01;
+  }
+
+  // Apply transition with minimal offset
+  viewport.style.transition = "transform 0.3s ease-out";
+
+  // Parse existing transform and add subtle offset
+  const transformMatch = currentTransform.match(
+    /translate\(([^)]+)\) scale\(([^)]+)\)/,
+  );
+  if (transformMatch) {
+    const [, translatePart, scalePart] = transformMatch;
+    const [currentX, currentY] = translatePart
+      .split(",")
+      .map((s) => parseFloat(s.trim()));
+
+    viewport.style.transform = `translate(${currentX + pageOffsetX}px, ${currentY + pageOffsetY}px) scale(${scalePart})`;
+  }
+
+  console.log(
+    `🎯 Page ${page.id} - minimal offset applied: (${pageOffsetX}, ${pageOffsetY})`,
+  );
 }
 
 /**
@@ -526,7 +604,6 @@ async function showPageTransition(
     `🎭 Transition: ${fromPage?.id || "start"} → ${toPage.id} (${config.transitionType})`,
   );
 
-  // Create transition overlay
   const transition = document.createElement("div");
   transition.className = "page-transition";
   transition.style.position = "absolute";
@@ -537,13 +614,11 @@ async function showPageTransition(
   transition.style.zIndex = "100";
   transition.style.pointerEvents = "none";
 
-  // Page indicator
   if (config.showPageIndicators) {
     const indicator = createPageIndicator(toPage);
     transition.appendChild(indicator);
   }
 
-  // Transition effect
   let transitionEffect: string;
   switch (config.transitionType) {
     case "fade":
@@ -581,14 +656,12 @@ async function showPageTransition(
 
   viewport.appendChild(transition);
 
-  // Animate transition
   await animateTransition(
     transition,
     transitionEffect,
     config.transitionDuration,
   );
 
-  // Remove transition
   if (transition.parentNode) {
     transition.parentNode.removeChild(transition);
   }
@@ -622,7 +695,7 @@ function createPageIndicator(page: VirtualPage): HTMLElement {
 }
 
 /**
- * Animate transition effect with better timing and easing
+ * Animate transition effect
  */
 async function animateTransition(
   element: HTMLElement,
@@ -633,7 +706,6 @@ async function animateTransition(
     const halfDuration = duration / 2;
     element.style.transition = `${effect} ${halfDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
 
-    // Trigger animation
     requestAnimationFrame(() => {
       switch (effect) {
         case "opacity":
@@ -645,13 +717,11 @@ async function animateTransition(
           break;
 
         case "transform":
-          // Animate to center position first
           element.style.transform = "translate(0, 0) scale(1)";
 
           setTimeout(() => {
             element.style.transition = `${effect} ${halfDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
 
-            // Then animate out
             if (element.style.transform.includes("translateX(100%)")) {
               element.style.transform = "translateX(-100%)";
             } else if (element.style.transform.includes("translateX(-100%)")) {
@@ -673,39 +743,56 @@ async function animateTransition(
 }
 
 /**
- * Animate single element in viewport using existing progressive fill system
+ * Animate single element in viewport - WITH DEBUGGING
  */
 async function animateElementInViewport(
   element: DrawingElement,
   viewport: HTMLElement,
   settings: ExtendedReplaySettings,
 ): Promise<void> {
-  // Get element-specific settings
+  console.log("🔧 DEBUG: animateElementInViewport called");
+  console.log("🔧 DEBUG: Element:", {
+    id: element.id,
+    type: element.type,
+    x: element.x,
+    y: element.y,
+    width: element.width,
+    height: element.height,
+    points: element.points?.length || 0,
+  });
+  console.log("🔧 DEBUG: Viewport:", {
+    tagName: viewport.tagName,
+    className: viewport.className,
+    rect: viewport.getBoundingClientRect(),
+    transform: viewport.style.transform,
+    innerHTML: viewport.innerHTML.length,
+  });
+
   const duration = getElementDuration(element, settings);
   const easing = getElementEasing(element, settings);
 
   console.log(
     `🎨 Animating ${element.type} element ${element.id} with duration ${duration}ms, easing ${easing}`,
   );
-  console.log(`📍 Element coordinates: (${element.x}, ${element.y})`);
 
   try {
-    // Use existing directSvgAnimation system for progressive fills
+    console.log("🔧 DEBUG: Calling animateDrawingElements...");
     await animateDrawingElements([element], viewport, {
       duration: duration,
-      delay: 0, // No delay for single element
+      delay: 0,
       easing: easing,
     });
 
     console.log(`✅ Element ${element.id} animation completed`);
   } catch (error) {
     console.error(`❌ Error animating element ${element.id}:`, error);
-    // Continue with animation even if one element fails
+    console.error(`❌ ERROR STACK:`, error.stack);
+    throw error; // Re-throw to see the full error chain
   }
 }
 
 /**
- * Animate all elements in a page using existing progressive fill system
+ * Animate all elements in a page
  */
 async function animatePageElements(
   elements: DrawingElement[],
@@ -713,27 +800,22 @@ async function animatePageElements(
   settings: ExtendedReplaySettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
-  // Sort elements by timestamp within the page
   const sortedElements = [...elements].sort(
     (a, b) => a.timestamp - b.timestamp,
   );
 
   console.log(`📄 Animating page with ${sortedElements.length} elements`);
 
-  // Animate elements one by one for better control and progress tracking
   for (let i = 0; i < sortedElements.length; i++) {
     const element = sortedElements[i];
 
-    // Animate single element with progressive fills
     await animateElementInViewport(element, viewport, settings);
 
-    // Report progress
     if (onProgress) {
       const progress = ((i + 1) / sortedElements.length) * 100;
       onProgress(progress);
     }
 
-    // Wait for delay between elements (except last element)
     if (i < sortedElements.length - 1) {
       const delay = getElementDelay(element, settings);
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -828,7 +910,7 @@ function calculateTrueSpeedDuration(
   speedRate: number,
 ): number {
   if (!element.points || element.points.length < 2) {
-    return 1000; // Default duration
+    return 1000;
   }
 
   let totalLength = 0;
@@ -839,7 +921,7 @@ function calculateTrueSpeedDuration(
   }
 
   const duration = (Math.max(totalLength, 10) / speedRate) * 1000;
-  return Math.max(100, Math.min(duration, 10000)); // Clamp between 100ms and 10s
+  return Math.max(100, Math.min(duration, 10000));
 }
 
 /**
@@ -851,21 +933,18 @@ export function clearVirtualPageReplay(container: HTMLElement): void {
     return;
   }
 
-  // Clear viewport and all animations
   const viewport = container.querySelector(".virtual-page-viewport");
   if (viewport) {
     viewport.remove();
     console.log("🧹 Viewport cleared");
   }
 
-  // Clear any remaining transition elements
   const transitions = container.querySelectorAll(".page-transition");
   if (transitions.length > 0) {
     transitions.forEach((t) => t.remove());
     console.log(`🧹 ${transitions.length} transitions cleared`);
   }
 
-  // Clear any page indicators
   const indicators = container.querySelectorAll(".page-indicator");
   if (indicators.length > 0) {
     indicators.forEach((i) => i.remove());
@@ -905,7 +984,7 @@ export function getVirtualPageSystemInfo(): object {
   const allPages = virtualPagesManager.getAllPages();
 
   return {
-    version: "1.0.0",
+    version: "2.0.0", // Fixed version - proper container scaling
     totalPages: stats.totalPages,
     pagesWithElements: stats.pagesWithElements,
     totalElements: stats.totalElements,
