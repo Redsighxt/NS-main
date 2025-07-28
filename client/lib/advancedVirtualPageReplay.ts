@@ -714,17 +714,75 @@ function calculateTrueSpeedDuration(element: DrawingElement, speedRate: number):
  * Clear virtual page replay animations
  */
 export function clearVirtualPageReplay(container: HTMLElement): void {
-  if (!container) return;
-  
+  if (!container) {
+    console.warn("No container provided to clear");
+    return;
+  }
+
   // Clear viewport and all animations
   const viewport = container.querySelector(".virtual-page-viewport");
   if (viewport) {
     viewport.remove();
+    console.log("🧹 Viewport cleared");
   }
-  
+
   // Clear any remaining transition elements
   const transitions = container.querySelectorAll(".page-transition");
-  transitions.forEach(t => t.remove());
-  
-  console.log("🧹 Virtual page replay cleared");
+  if (transitions.length > 0) {
+    transitions.forEach(t => t.remove());
+    console.log(`🧹 ${transitions.length} transitions cleared`);
+  }
+
+  // Clear any page indicators
+  const indicators = container.querySelectorAll(".page-indicator");
+  if (indicators.length > 0) {
+    indicators.forEach(i => i.remove());
+    console.log(`🧹 ${indicators.length} indicators cleared`);
+  }
+
+  console.log("✅ Virtual page replay cleared completely");
+}
+
+/**
+ * Validate virtual page replay configuration
+ */
+export function validateReplayConfig(config: VirtualPageReplayConfig): boolean {
+  const errors: string[] = [];
+
+  if (!config.width || config.width <= 0) errors.push("Invalid width");
+  if (!config.height || config.height <= 0) errors.push("Invalid height");
+  if (!config.mode || !["chronological", "layer"].includes(config.mode)) errors.push("Invalid mode");
+  if (!config.transitionType) errors.push("Missing transition type");
+  if (config.transitionDuration < 0) errors.push("Invalid transition duration");
+
+  if (errors.length > 0) {
+    console.error("❌ Configuration errors:", errors);
+    return false;
+  }
+
+  console.log("✅ Configuration validated successfully");
+  return true;
+}
+
+/**
+ * Get system information for debugging
+ */
+export function getVirtualPageSystemInfo(): object {
+  const stats = virtualPagesManager.getStatistics();
+  const allPages = virtualPagesManager.getAllPages();
+
+  return {
+    version: "1.0.0",
+    totalPages: stats.totalPages,
+    pagesWithElements: stats.pagesWithElements,
+    totalElements: stats.totalElements,
+    originPageElements: stats.originPageElements,
+    pages: allPages.map(page => ({
+      id: page.id,
+      isOrigin: page.isOrigin,
+      position: { x: page.x, y: page.y },
+      gridPosition: page.gridPosition,
+      elementCount: page.elements.length,
+    })),
+  };
 }
