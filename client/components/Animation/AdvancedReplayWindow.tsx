@@ -736,8 +736,7 @@ export function AdvancedReplayWindow() {
 
     (replayWindow as any).stopReplay = () => {
       if (replayCanvas) {
-        // Clear the origin box animation overlay and container
-        clearOriginBoxAnimationOverlay(replayCanvas);
+        // Clear the container for the directSvgAnimation system
         replayCanvas.innerHTML = "";
         if (progressBar) {
           progressBar.style.width = "0%";
@@ -1169,8 +1168,7 @@ export function AdvancedReplayWindow() {
 
     (replayWindow2 as any).stopReplay2 = () => {
       if (replayCanvas2) {
-        // Clear the chronological animation overlay and container
-        clearChronologicalAnimationOverlay(replayCanvas2);
+        // Clear the container for the directSvgAnimation system
         replayCanvas2.innerHTML = "";
         if (progressBar2) {
           progressBar2.style.width = "0%";
