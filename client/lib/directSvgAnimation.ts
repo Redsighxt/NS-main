@@ -549,7 +549,7 @@ function convertToExcalidrawElement(element: DrawingElement): any {
       element.type === "path" || element.type === "highlighter"
         ? "freedraw"
         : element.type,
-    x: element.x,
+    x: normalizedCoords.x,
     y: element.y,
     width: element.width || 100,
     height: element.height || 100,
