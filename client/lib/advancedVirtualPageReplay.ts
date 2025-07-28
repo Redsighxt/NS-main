@@ -259,7 +259,7 @@ async function executeLayerReplay(
   const totalElements = elements.length;
 
   for (const group of pageGroups) {
-    console.log(`���� Animating page ${group.page.id} with ${group.elements.length} elements`);
+    console.log(`📖 Animating page ${group.page.id} with ${group.elements.length} elements`);
 
     // Show page transition (except for first page)
     if (processedGroups > 0) {
@@ -592,7 +592,7 @@ async function animateTransition(element: HTMLElement, effect: string, duration:
 }
 
 /**
- * Animate single element in viewport using existing progressive fill system with coordinate transformation
+ * Animate single element in viewport using existing progressive fill system
  */
 async function animateElementInViewport(
   element: DrawingElement,
@@ -604,15 +604,11 @@ async function animateElementInViewport(
   const easing = getElementEasing(element, settings);
 
   console.log(`🎨 Animating ${element.type} element ${element.id} with duration ${duration}ms, easing ${easing}`);
-  console.log(`📍 Original element coordinates: (${element.x}, ${element.y})`);
+  console.log(`📍 Element coordinates: (${element.x}, ${element.y})`);
 
   try {
-    // CRITICAL FIX: Transform element coordinates to viewport-relative coordinates
-    const viewportTransformedElement = transformElementToViewportCoordinates(element, viewport);
-    console.log(`📍 Transformed element coordinates: (${viewportTransformedElement.x}, ${viewportTransformedElement.y})`);
-
-    // Use existing directSvgAnimation system for progressive fills with transformed element
-    await animateDrawingElements([viewportTransformedElement], viewport, {
+    // Use existing directSvgAnimation system for progressive fills
+    await animateDrawingElements([element], viewport, {
       duration: duration,
       delay: 0, // No delay for single element
       easing: easing,
@@ -626,7 +622,7 @@ async function animateElementInViewport(
 }
 
 /**
- * Animate all elements in a page using existing progressive fill system with coordinate transformation
+ * Animate all elements in a page using existing progressive fill system
  */
 async function animatePageElements(
   elements: DrawingElement[],
@@ -639,28 +635,21 @@ async function animatePageElements(
 
   console.log(`📄 Animating page with ${sortedElements.length} elements`);
 
-  // CRITICAL FIX: Transform ALL elements to viewport coordinates before animation
-  const transformedElements = sortedElements.map(element =>
-    transformElementToViewportCoordinates(element, viewport)
-  );
-
-  console.log(`🔄 Transformed ${transformedElements.length} elements to viewport coordinates`);
-
   // Animate elements one by one for better control and progress tracking
-  for (let i = 0; i < transformedElements.length; i++) {
-    const element = transformedElements[i];
+  for (let i = 0; i < sortedElements.length; i++) {
+    const element = sortedElements[i];
 
-    // Animate single element with progressive fills (already transformed)
-    await animateTransformedElementInViewport(element, viewport, settings);
+    // Animate single element with progressive fills
+    await animateElementInViewport(element, viewport, settings);
 
     // Report progress
     if (onProgress) {
-      const progress = ((i + 1) / transformedElements.length) * 100;
+      const progress = ((i + 1) / sortedElements.length) * 100;
       onProgress(progress);
     }
 
     // Wait for delay between elements (except last element)
-    if (i < transformedElements.length - 1) {
+    if (i < sortedElements.length - 1) {
       const delay = getElementDelay(element, settings);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
