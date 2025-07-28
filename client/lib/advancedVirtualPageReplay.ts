@@ -714,21 +714,40 @@ async function animateTransition(
 }
 
 /**
- * Animate single element in viewport
+ * Animate single element in viewport - WITH DEBUGGING
  */
 async function animateElementInViewport(
   element: DrawingElement,
   viewport: HTMLElement,
   settings: ExtendedReplaySettings,
 ): Promise<void> {
+  console.log("🔧 DEBUG: animateElementInViewport called");
+  console.log("🔧 DEBUG: Element:", {
+    id: element.id,
+    type: element.type,
+    x: element.x,
+    y: element.y,
+    width: element.width,
+    height: element.height,
+    points: element.points?.length || 0
+  });
+  console.log("🔧 DEBUG: Viewport:", {
+    tagName: viewport.tagName,
+    className: viewport.className,
+    rect: viewport.getBoundingClientRect(),
+    transform: viewport.style.transform,
+    innerHTML: viewport.innerHTML.length
+  });
+
   const duration = getElementDuration(element, settings);
   const easing = getElementEasing(element, settings);
 
   console.log(
-    `🎨 Animating ${element.type} element ${element.id} with duration ${duration}ms`,
+    `🎨 Animating ${element.type} element ${element.id} with duration ${duration}ms, easing ${easing}`,
   );
 
   try {
+    console.log("🔧 DEBUG: Calling animateDrawingElements...");
     await animateDrawingElements([element], viewport, {
       duration: duration,
       delay: 0,
@@ -738,6 +757,8 @@ async function animateElementInViewport(
     console.log(`✅ Element ${element.id} animation completed`);
   } catch (error) {
     console.error(`❌ Error animating element ${element.id}:`, error);
+    console.error(`❌ ERROR STACK:`, error.stack);
+    throw error; // Re-throw to see the full error chain
   }
 }
 
