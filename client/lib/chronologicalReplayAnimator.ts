@@ -34,13 +34,13 @@ interface ChronologicalEvent {
  */
 export async function replayChronologicalMode(
   elements: DrawingElement[],
-  canvas: HTMLCanvasElement,
+  container: HTMLElement,
   config: ChronologicalReplayConfig,
   settings: AnimationSettings,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
-  if (!canvas) {
-    const error = "No canvas provided for chronological replay";
+  if (!container) {
+    const error = "No container provided for chronological replay";
     console.error(error);
     throw new Error(error);
   }
@@ -56,23 +56,16 @@ export async function replayChronologicalMode(
     `Starting chronological timeline replay with ${elements.length} elements`,
   );
 
-  // Set canvas size
-  canvas.width = config.width;
-  canvas.height = config.height;
-
-  // Clear canvas
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    const error = "Failed to get canvas 2D context for chronological replay";
-    console.error(error);
-    throw new Error(error);
-  }
-
-  ctx.fillStyle = config.backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Clear container and set up for animation
+  container.innerHTML = "";
+  container.style.width = `${config.width}px`;
+  container.style.height = `${config.height}px`;
+  container.style.backgroundColor = config.backgroundColor;
+  container.style.position = "relative";
+  container.style.overflow = "hidden";
 
   // Create SVG overlay for animations
-  let svg = createChronologicalSVG(canvas);
+  let svg = createChronologicalSVG(container);
 
   // Build chronological timeline
   const timeline = buildChronologicalTimeline(elements);
@@ -205,9 +198,9 @@ async function executeChronologicalTimeline(
 /**
  * Create SVG overlay for chronological animations
  */
-function createChronologicalSVG(canvas: HTMLCanvasElement): SVGSVGElement {
+function createChronologicalSVG(container: HTMLElement): SVGSVGElement {
   // Remove existing SVG
-  const existingSvg = canvas.parentElement?.querySelector(".chronological-svg");
+  const existingSvg = container.querySelector(".chronological-svg");
   if (existingSvg) existingSvg.remove();
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -234,7 +227,7 @@ function createChronologicalSVG(canvas: HTMLCanvasElement): SVGSVGElement {
   svg.setAttribute("viewBox", `0 0 1920 1080`);
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-  canvas.parentElement?.appendChild(svg);
+  container.appendChild(svg);
   return svg;
 }
 
@@ -531,11 +524,11 @@ async function animateChronologicalElement(
  * Clear chronological animation overlay
  */
 export function clearChronologicalAnimationOverlay(
-  canvas: HTMLCanvasElement,
+  container: HTMLElement,
 ): void {
-  if (!canvas || !canvas.parentElement) return;
+  if (!container) return;
 
-  const svg = canvas.parentElement.querySelector(
+  const svg = container.querySelector(
     ".chronological-svg",
   ) as SVGSVGElement;
   if (svg) {
